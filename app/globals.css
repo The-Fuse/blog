@@ -3326,3 +3326,84 @@ a.row-main:hover {
     height: 48px;
   }
 }
+
+/* ══ Writer: stable focus, visible tools on narrow windows, tag-style optional labels ══ */
+
+/* Focusing a block scrolls instantly (no glide) and never lands under the sticky bar */
+html:has(.wr) {
+  scroll-behavior: auto;
+  scroll-padding-top: 130px;
+}
+
+/* On narrow windows the tools row sits above the block in flow, so it must always be visible */
+@media (max-width: 900px) {
+  .blk-wrap .blk-tools {
+    opacity: 1;
+  }
+}
+
+/* Label slot: a small tag above the block, always present for block types that have one */
+.blk-tag-row,
+.blk-source-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.blk-source-row {
+  margin: 8px 0 0;
+}
+
+.blk-tag-icon {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.blk-tag {
+  width: auto;
+  max-width: 100%;
+  background: transparent;
+  border: 1px dashed var(--rule);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.blk-tag::placeholder {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-3);
+}
+
+.blk-tag:focus,
+.blk-tag.has-value {
+  border-style: solid;
+  background: var(--panel-2);
+}
+
+@media (max-width: 900px) {
+  .blk-tag {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* With a panel open on a narrow screen the panel covers the page: drop the formatting row and dim the bar */
+@media (max-width: 1100px) {
+  .wr.panel-open .wr-fmt {
+    display: none;
+  }
+  .wr.panel-open .wr-bar-main {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+}

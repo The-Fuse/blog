@@ -103,9 +103,6 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
   const meta = BLOCK_META[block.type];
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const [focused, setFocused] = useState(false);
-  // Optional label / source fields are hidden until the author asks for them, so focusing never shifts layout.
-  const [showLabel, setShowLabel] = useState(false);
-  const [showCite, setShowCite] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
   const [slashIndex, setSlashIndex] = useState(0);
 
@@ -198,17 +195,19 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
     <div className={`blk-wrap${focused ? " focused" : ""}`}>
       <div id={`blk-${block.id}`} className={`blk${wide ? " wide" : ""}`} style={{ borderLeftColor: meta.edge }}>
         <div style={{ minWidth: 0, position: "relative" }}>
-          {meta.labelHint && (block.label || showLabel) ? (
-            <input
-              value={block.label || ""}
-              autoFocus={showLabel && !block.label}
-              onChange={(e) => onChange(block.id, { label: e.target.value })}
-              onBlur={() => { if (!block.label) setShowLabel(false); }}
-              placeholder={meta.labelHint}
-              className="blk-label"
-              style={{ color: meta.accent }}
-              aria-label="Optional label"
-            />
+          {meta.labelHint ? (
+            <div className="blk-tag-row">
+              <span className="blk-tag-icon" aria-hidden>⌗</span>
+              <input
+                value={block.label || ""}
+                onChange={(e) => onChange(block.id, { label: e.target.value })}
+                placeholder={block.type === "chapter" ? "Tag, optional" : block.type === "plate" || block.type === "table" ? "Title, optional" : "Heading, optional"}
+                className={`blk-tag${block.label ? " has-value" : ""}`}
+                style={{ color: meta.accent }}
+                aria-label="Optional label"
+                size={Math.max(14, (block.label || "").length + 2)}
+              />
+            </div>
           ) : null}
 
           {meta.plate ? (
@@ -283,17 +282,19 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
             />
           ) : null}
 
-          {meta.cite && (block.cite || showCite) ? (
-            <input
-              value={block.cite || ""}
-              autoFocus={showCite && !block.cite}
-              onChange={(e) => onChange(block.id, { cite: e.target.value })}
-              onBlur={() => { if (!block.cite) setShowCite(false); }}
-              placeholder="Who said it, or where it is from"
-              className="blk-label"
-              style={{ marginTop: 8, color: "var(--copper)" }}
-              aria-label="Quote source"
-            />
+          {meta.cite ? (
+            <div className="blk-source-row">
+              <span aria-hidden>—</span>
+              <input
+                value={block.cite || ""}
+                onChange={(e) => onChange(block.id, { cite: e.target.value })}
+                placeholder="Source, optional"
+                className={`blk-tag${block.cite ? " has-value" : ""}`}
+                style={{ color: "var(--copper)" }}
+                aria-label="Quote source"
+                size={Math.max(14, (block.cite || "").length + 2)}
+              />
+            </div>
           ) : null}
         </div>
 
@@ -310,12 +311,6 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
             ))}
           </select>
           <div className="blk-actions">
-            {meta.labelHint && !block.label && !showLabel ? (
-              <button type="button" className="blk-mini" title={meta.labelHint} onClick={() => setShowLabel(true)}>+ Label</button>
-            ) : null}
-            {meta.cite && !block.cite && !showCite ? (
-              <button type="button" className="blk-mini" title="Add who said it or where it is from" onClick={() => setShowCite(true)}>+ Source</button>
-            ) : null}
             <button type="button" className="blk-btn" title="Move up" aria-label="Move block up" disabled={index === 0} onClick={() => onMove(block.id, -1)}>↑</button>
             <button type="button" className="blk-btn" title="Move down" aria-label="Move block down" disabled={index === count - 1} onClick={() => onMove(block.id, 1)}>↓</button>
             <button type="button" className="blk-btn danger" title="Remove this block (you can undo)" aria-label="Remove block" onClick={() => onRemove(block.id)}>✕</button>

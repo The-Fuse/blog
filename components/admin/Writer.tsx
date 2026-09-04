@@ -504,7 +504,7 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   }
 
   return (
-    <div className="wr">
+    <div className={`wr${outlineOpen || settingsOpen ? " panel-open" : ""}${mode === "preview" ? " previewing" : ""}`}>
       {/* ── Top bar: the only permanent chrome while writing */}
       <header className="wr-bar">
         <div className="wr-bar-main">
