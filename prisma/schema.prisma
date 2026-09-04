@@ -25,6 +25,9 @@ model Article {
   blocks           Json     @default("[]")
   /// Words in title, subtitle and body, kept up to date on save so lists never need the body.
   wordCount        Int      @default(0)
+
+  @@index([status, publishDate])
+  @@index([updatedAt])
 }
 
 /// Single-row site settings edited from the admin (About section, contact email).

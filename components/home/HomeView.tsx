@@ -37,7 +37,7 @@ export function HomeView({ articles }: { articles: ArticleSummary[] }) {
           <div className="plate-ph">
             {featured.leadPlateUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={featured.leadPlateUrl} alt="" />
+              <img src={featured.leadPlateUrl} alt="" fetchPriority="high" decoding="async" />
             ) : (
               <div className="plate-hatch mono-sm">lead plate</div>
             )}
@@ -69,7 +69,7 @@ export function HomeView({ articles }: { articles: ArticleSummary[] }) {
               <span className="post-thumb" aria-hidden="true">
                 {p.leadPlateUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.leadPlateUrl} alt="" />
+                  <img src={p.leadPlateUrl} alt="" loading="lazy" decoding="async" />
                 ) : null}
               </span>
               <span>

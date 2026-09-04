@@ -9,7 +9,7 @@ function Plate({ block }: { block: Block }) {
       <div className="plate-wide">
         {block.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={block.imageUrl} alt={block.label || "Plate"} />
+          <img src={block.imageUrl} alt={block.label || "Plate"} loading="lazy" decoding="async" />
         ) : (
           <span className="mono-sm" style={{ color: "var(--ink-3)", padding: 24, textAlign: "center" }}>
             wide plate · full column width

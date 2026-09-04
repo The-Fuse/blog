@@ -87,7 +87,7 @@ export function ArticleView({ article, next = null, chrome = true }: Props) {
                 <div className="plate-ph">
                   {article.leadPlateUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={article.leadPlateUrl} alt="" />
+                    <img src={article.leadPlateUrl} alt="" fetchPriority="high" decoding="async" />
                   ) : (
                     <div className="plate-hatch mono-sm" style={{ fontFamily: "var(--font-article-mono)" }}>
                       cover image (optional)

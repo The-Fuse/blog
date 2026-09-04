@@ -6,6 +6,7 @@ const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
   style: ["normal", "italic"],
+  display: "swap",
 });
 
 const baskerville = Libre_Baskerville({
@@ -13,12 +14,15 @@ const baskerville = Libre_Baskerville({
   subsets: ["latin"],
   weight: ["400", "700"],
   style: ["normal", "italic"],
+  display: "swap",
 });
 
 const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
   weight: ["400", "500"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
