@@ -50,6 +50,9 @@ export type ArticleDTO = {
   blocks: Block[];
 };
 
+/** Everything about an article except its body. Used for lists, feeds and navigation. */
+export type ArticleSummary = Omit<ArticleDTO, "blocks"> & { words: number; minutes: number };
+
 export type ArticleInput = {
   kicker?: string;
   title?: string;

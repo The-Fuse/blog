@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { listAll } from "@/lib/articles";
+import { getCounts } from "@/lib/articles";
 
 const labels = [
   "Palette",
@@ -115,12 +115,7 @@ export const metadata = { title: "Format kit" };
 export const dynamic = "force-dynamic";
 
 export default async function KitPage() {
-  const articles = await listAll();
-  const counts = {
-    all: articles.length,
-    published: articles.filter((a) => a.status === "published").length,
-    drafts: articles.filter((a) => a.status === "draft").length,
-  };
+  const counts = await getCounts();
 
   return (
     <AdminShell counts={counts}>

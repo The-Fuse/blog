@@ -1,14 +1,14 @@
 import { listPublished } from "@/lib/articles";
-import { articleStats } from "@/lib/format";
 
-export const dynamic = "force-dynamic";
+// Rendered once and cached; publishing, editing or deleting an article revalidates these paths.
+export const revalidate = 3600;
 
 export async function GET(request: Request) {
   const origin = new URL(request.url).origin;
   const articles = await listPublished();
   const items = articles
     .map((a) => {
-      const { minutes } = articleStats(a);
+      const minutes = a.minutes;
       return `<item>
         <title>${esc(a.title)}</title>
         <link>${origin}/articles/${a.slug}</link>

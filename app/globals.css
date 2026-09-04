@@ -3224,3 +3224,29 @@ a.secondary-btn:hover {
   margin-top: 0;
   background: transparent;
 }
+
+/* Loading skeletons */
+.skeleton-page {
+  padding: 28px clamp(16px, 4vw, 56px);
+}
+
+.skeleton-row {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule-2);
+}
+
+.skeleton-bar {
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--panel) 0%, var(--panel-2) 50%, var(--panel) 100%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bar { animation: none; }
+}

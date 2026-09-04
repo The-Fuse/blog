@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatShortDate } from "@/lib/format";
-import type { ArticleDTO } from "@/lib/types";
+import type { ArticleSummary } from "@/lib/types";
 import { AdminShell } from "./AdminShell";
 import { useConfirm } from "./ConfirmDialog";
 
 type View = "all" | "published" | "drafts";
 
-function RowMenu({ article, onEdit, onToggle, onDelete }: { article: ArticleDTO; onEdit: () => void; onToggle: () => void; onDelete: () => void }) {
+function RowMenu({ article, onEdit, onToggle, onDelete }: { article: ArticleSummary; onEdit: () => void; onToggle: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
   const published = article.status === "published";
@@ -46,7 +47,7 @@ function RowMenu({ article, onEdit, onToggle, onDelete }: { article: ArticleDTO;
   );
 }
 
-export function ArticleList({ articles, initialView = "all" }: { articles: ArticleDTO[]; initialView?: View }) {
+export function ArticleList({ articles, initialView = "all" }: { articles: ArticleSummary[]; initialView?: View }) {
   const router = useRouter();
   const [view, setView] = useState<View>(initialView);
   const [query, setQuery] = useState("");
@@ -67,11 +68,11 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
     return list;
   }, [articles, view, query]);
 
-  function edit(article: ArticleDTO) {
+  function edit(article: ArticleSummary) {
     router.push(`/admin/articles/${article.id}`);
   }
 
-  async function toggle(article: ArticleDTO) {
+  async function toggle(article: ArticleSummary) {
     const publishing = article.status !== "published";
     const ok = await confirm(
       publishing
@@ -93,7 +94,7 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
     }
   }
 
-  async function remove(article: ArticleDTO) {
+  async function remove(article: ArticleSummary) {
     const ok = await confirm({ title: `Delete “${article.title}”?`, message: "This removes it permanently, including from the live site. It cannot be undone.", confirmLabel: "Delete", danger: true });
     if (!ok) return;
     setBusyId(article.id);
@@ -135,7 +136,7 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
         const busy = busyId === r.id;
         return (
           <div key={r.id} className={`admin-row${busy ? " busy" : ""}`}>
-            <button type="button" className="row-main" onClick={() => edit(r)} title="Open in the writer">
+            <Link href={`/admin/articles/${r.id}`} className="row-main" title="Open in the writer">
               <span className="row-title">{r.title || "Untitled"}</span>
               <span className="row-dek">{r.dek}</span>
               <span className="row-meta mono-sm">
@@ -143,7 +144,7 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
                 {r.topic ? <span> · {r.topic}</span> : null}
                 <span> · {formatShortDate(r.updatedAt)}</span>
               </span>
-            </button>
+            </Link>
             <span className="hide-md mono-sm" style={{ color: "var(--copper)" }}>{r.topic}</span>
             <span className="hide-md" style={{ fontSize: "0.88rem", color: "var(--ink-2)" }}>{formatShortDate(r.updatedAt)}</span>
             <span className="row-status mono-sm" style={{ color }}>

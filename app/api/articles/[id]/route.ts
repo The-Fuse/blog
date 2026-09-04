@@ -14,6 +14,7 @@ export async function GET(_request: Request, ctx: Ctx) {
 export async function PATCH(request: Request, ctx: Ctx) {
   const { id } = await ctx.params;
   const input = (await request.json()) as ArticleInput;
+  const before = await getById(id);
   const article = await updateArticle(id, input);
   if (!article) return Response.json({ error: "Not found" }, { status: 404 });
   if (article === CONFLICT) {
@@ -24,6 +25,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
   }
   revalidatePath("/");
   revalidatePath(`/articles/${article.slug}`);
+  if (before && before.slug !== article.slug) revalidatePath(`/articles/${before.slug}`);
   revalidatePath("/feed.xml");
   return Response.json(article);
 }

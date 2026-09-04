@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { articleStats, formatMonthYear } from "@/lib/format";
-import type { ArticleDTO } from "@/lib/types";
+import { formatMonthYear } from "@/lib/format";
+import type { ArticleSummary } from "@/lib/types";
 
-export function HomeView({ articles }: { articles: ArticleDTO[] }) {
+export function HomeView({ articles }: { articles: ArticleSummary[] }) {
   const [filter, setFilter] = useState("All");
   const featured = articles.find((a) => a.featured) ?? articles[0] ?? null;
   const filters = useMemo(() => {
@@ -24,7 +24,7 @@ export function HomeView({ articles }: { articles: ArticleDTO[] }) {
         <Link href={`/articles/${featured.slug}`} className="feat">
           <div>
             <span className="mono" style={{ display: "block", color: "var(--copper)", marginBottom: 22 }}>
-              Latest · {featured.topic} · {articleStats(featured).minutes} min
+              Latest · {featured.topic} · {featured.minutes} min
             </span>
             <h1 style={{ fontSize: "clamp(2.6rem, 6vw, 4.4rem)", letterSpacing: "-0.02em", lineHeight: 0.98, marginBottom: "0.4em" }}>
               {featured.title}
@@ -82,7 +82,7 @@ export function HomeView({ articles }: { articles: ArticleDTO[] }) {
                 </span>
               </span>
               <span className="post-row-meta mono-sm" style={{ color: "var(--copper)", whiteSpace: "nowrap" }}>
-                {p.topic} · {articleStats(p).minutes} min
+                {p.topic} · {p.minutes} min
               </span>
             </Link>
           ))}

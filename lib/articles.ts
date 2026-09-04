@@ -1,7 +1,8 @@
 import type { Article } from "../generated/prisma/client";
 import { prisma } from "./db";
 import { slugify } from "./slug";
-import { DEFAULT_TOPICS, type ArticleDTO, type ArticleInput, type Block, type Status } from "./types";
+import { articleStats, readMinutes } from "./format";
+import { DEFAULT_TOPICS, type ArticleDTO, type ArticleInput, type ArticleSummary, type Block, type Status } from "./types";
 
 export function toDTO(article: Article): ArticleDTO {
   return {
@@ -22,6 +23,38 @@ export function toDTO(article: Article): ArticleDTO {
   };
 }
 
+/** Column list for summaries: everything except the (large) blocks JSON. */
+const SUMMARY_SELECT = {
+  id: true, slug: true, kicker: true, title: true, dek: true, topic: true, status: true, featured: true,
+  publishDate: true, updatedAt: true, author: true, leadPlateUrl: true, leadPlateCaption: true, wordCount: true,
+} as const;
+
+type SummaryRow = Omit<Article, "blocks" | "createdAt">;
+
+export function toSummary(a: SummaryRow): ArticleSummary {
+  return {
+    id: a.id,
+    slug: a.slug,
+    kicker: a.kicker,
+    title: a.title,
+    dek: a.dek,
+    topic: a.topic,
+    status: a.status as Status,
+    featured: a.featured,
+    publishDate: a.publishDate.toISOString(),
+    updatedAt: a.updatedAt.toISOString(),
+    author: a.author,
+    leadPlateUrl: a.leadPlateUrl,
+    leadPlateCaption: a.leadPlateCaption,
+    words: a.wordCount,
+    minutes: readMinutes(a.wordCount),
+  };
+}
+
+function countWords(title: string, dek: string, blocks: Block[]) {
+  return articleStats({ title, dek, blocks }).words;
+}
+
 export async function uniqueSlug(title: string, excludeId?: string) {
   const base = slugify(title);
   let slug = base;
@@ -33,12 +66,14 @@ export async function uniqueSlug(title: string, excludeId?: string) {
   }
 }
 
-export async function listPublished() {
-  const articles = await prisma.article.findMany({
+/** Published articles without bodies, newest first. */
+export async function listPublished(): Promise<ArticleSummary[]> {
+  const rows = await prisma.article.findMany({
     where: { status: "published" },
     orderBy: { publishDate: "desc" },
+    select: SUMMARY_SELECT,
   });
-  return articles.map(toDTO);
+  return rows.map(toSummary);
 }
 
 export async function getPublishedBySlug(slug: string) {
@@ -48,11 +83,21 @@ export async function getPublishedBySlug(slug: string) {
   return article ? toDTO(article) : null;
 }
 
-export async function listAll() {
-  const articles = await prisma.article.findMany({
+/** All articles without bodies, most recently edited first (admin list). */
+export async function listAll(): Promise<ArticleSummary[]> {
+  const rows = await prisma.article.findMany({
     orderBy: { updatedAt: "desc" },
+    select: SUMMARY_SELECT,
   });
-  return articles.map(toDTO);
+  return rows.map(toSummary);
+}
+
+/** Counts for the admin navigation, in one small query. */
+export async function getCounts() {
+  const groups = await prisma.article.groupBy({ by: ["status"], _count: { _all: true } });
+  const published = groups.find((g) => g.status === "published")?._count._all ?? 0;
+  const drafts = groups.find((g) => g.status === "draft")?._count._all ?? 0;
+  return { all: published + drafts, published, drafts };
 }
 
 /** Every topic in use, plus the defaults, sorted. Used for the topic suggestions in the writer. */
@@ -73,6 +118,7 @@ export async function getById(id: string) {
 export async function createArticle(input: ArticleInput) {
   const title = input.title?.trim() || "Untitled";
   const slug = await uniqueSlug(title);
+  const blocks: Block[] = input.blocks ?? [{ id: crypto.randomUUID(), type: "lede", text: "" }];
   const article = await prisma.article.create({
     data: {
       slug,
@@ -86,7 +132,8 @@ export async function createArticle(input: ArticleInput) {
       author: input.author ?? "Rohit Yadav",
       leadPlateUrl: input.leadPlateUrl ?? null,
       leadPlateCaption: input.leadPlateCaption ?? "",
-      blocks: input.blocks ?? [{ id: crypto.randomUUID(), type: "lede", text: "" }],
+      blocks,
+      wordCount: countWords(title, input.dek ?? "", blocks),
     },
   });
   return toDTO(article);
@@ -122,6 +169,7 @@ export async function updateArticle(id: string, input: ArticleInput) {
     });
   }
 
+  const nextBlocks: Block[] = input.blocks ?? (existing.blocks as Block[]);
   const article = await prisma.article.update({
     where: { id },
     data: {
@@ -136,7 +184,8 @@ export async function updateArticle(id: string, input: ArticleInput) {
       author: input.author ?? existing.author,
       leadPlateUrl: input.leadPlateUrl === undefined ? existing.leadPlateUrl : input.leadPlateUrl,
       leadPlateCaption: input.leadPlateCaption ?? existing.leadPlateCaption,
-      blocks: input.blocks ?? (existing.blocks as Block[]),
+      blocks: nextBlocks,
+      wordCount: countWords(title, input.dek ?? existing.dek, nextBlocks),
     },
   });
   return toDTO(article);

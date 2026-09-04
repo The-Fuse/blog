@@ -23,6 +23,8 @@ model Article {
   leadPlateUrl     String?
   leadPlateCaption String   @default("")
   blocks           Json     @default("[]")
+  /// Words in title, subtitle and body, kept up to date on save so lists never need the body.
+  wordCount        Int      @default(0)
 }
 
 /// Single-row site settings edited from the admin (About section, contact email).

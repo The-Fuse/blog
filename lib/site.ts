@@ -9,9 +9,17 @@ export type SiteDTO = {
 
 export type SiteInput = Partial<SiteDTO>;
 
-/** The single settings row, created with defaults on first read. */
+const DEFAULTS: SiteDTO = {
+  aboutHeading: "About",
+  aboutText: "Long-form study editions of philosophers and of technical ideas — arguments set out as arguments, with every diagram drawn in one visual grammar.",
+  aboutNote: "New edition roughly every month.",
+  contactEmail: "",
+};
+
+/** The single settings row, or the defaults if it has never been saved. Read-only: never writes. */
 export async function getSite(): Promise<SiteDTO> {
-  const row = await prisma.site.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
+  const row = await prisma.site.findUnique({ where: { id: 1 } });
+  if (!row) return DEFAULTS;
   return { aboutHeading: row.aboutHeading, aboutText: row.aboutText, aboutNote: row.aboutNote, contactEmail: row.contactEmail };
 }
 

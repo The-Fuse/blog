@@ -4,7 +4,8 @@ import { Header } from "@/components/site/Header";
 import { listPublished } from "@/lib/articles";
 import { getSite } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
+// Rendered once and cached; publishing, editing or deleting an article revalidates these paths.
+export const revalidate = 3600;
 
 export default async function Home() {
   const [articles, site] = await Promise.all([listPublished(), getSite()]);
