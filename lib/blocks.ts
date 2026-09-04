@@ -86,7 +86,7 @@ export const BLOCK_META: Record<
     edge: "var(--copper)",
     accent: "var(--copper)",
     hint: "Chapter title — starts a new numbered section",
-    labelHint: "Short tag shown beside the chapter number (optional) — e.g. How to read this",
+    labelHint: "Short tag beside the chapter number (optional)",
   },
   lede: {
     kind: "Opening paragraph",
@@ -118,21 +118,21 @@ export const BLOCK_META: Record<
     edge: "var(--verd)",
     accent: "var(--verd)",
     hint: "The one thing the reader should remember from this chapter.",
-    labelHint: "Small heading for this box (optional) — e.g. Remember this",
+    labelHint: "Box heading (optional), e.g. Remember this",
   },
   warn: {
     kind: "Warning",
     edge: "var(--verm)",
     accent: "var(--verm)",
     hint: "A common mistake, and why it is wrong.",
-    labelHint: "Small heading for this box (optional) — e.g. Common mistake",
+    labelHint: "Box heading (optional), e.g. Common mistake",
   },
   exam: {
     kind: "Exam tip",
     edge: "var(--copper)",
     accent: "var(--copper)",
     hint: "How this topic tends to be asked in an exam, and how to answer.",
-    labelHint: "Small heading for this box (optional) — e.g. Exam tip",
+    labelHint: "Box heading (optional), e.g. Exam tip",
   },
   steps: {
     kind: "Numbered steps",
@@ -151,7 +151,7 @@ export const BLOCK_META: Record<
     edge: "var(--copper)",
     accent: "var(--copper)",
     hint: "Caption — say what the image shows and why it matters.",
-    labelHint: "Image title (optional) — e.g. Figure 1 · The two kinds of thing",
+    labelHint: "Image title (optional), e.g. Figure 1",
     plate: true,
   },
   code: {
@@ -165,14 +165,14 @@ export const BLOCK_META: Record<
     edge: "var(--copper)",
     accent: "var(--copper)",
     hint: "Fill in the cells. Use the buttons below the table to add rows and columns.",
-    labelHint: "Table title (optional) — e.g. Table · Berkeley against Locke",
+    labelHint: "Table title (optional)",
   },
   note: {
     kind: "Side note",
     edge: "var(--rule)",
     accent: "var(--ink-3)",
     hint: "A short note shown in the margin beside the chapter — sources, names, cross-references.",
-    labelHint: "Note heading (optional) — e.g. Source",
+    labelHint: "Note heading (optional), e.g. Source",
   },
 };
 

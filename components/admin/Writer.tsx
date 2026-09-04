@@ -9,7 +9,6 @@ import { articleStats, toDateInput } from "@/lib/format";
 import { textToBlocks } from "@/lib/import";
 import { slugify } from "@/lib/slug";
 import type { ArticleDTO, Block, BlockType, Status } from "@/lib/types";
-import { AdminShell } from "./AdminShell";
 import { BlockEditor, type FocusRequest } from "./BlockEditor";
 import { InsertMenu } from "./InsertMenu";
 
@@ -92,10 +91,6 @@ async function uploadFile(file: File) {
   return ((await res.json()) as { url: string }).url;
 }
 
-function FieldLabel({ children }: { children: string }) {
-  return <span className="field-label">{children}</span>;
-}
-
 export function Writer({ article, topics }: { article?: ArticleDTO | null; topics: string[] }) {
   const router = useRouter();
 
@@ -122,6 +117,9 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
   const [addMenuOpen, setAddMenuOpen] = useState(false);
+  const [outlineOpen, setOutlineOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [focusReq, setFocusReq] = useState<FocusRequest | null>(null);
   const nonce = useRef(0);
 
@@ -454,334 +452,396 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
           ? `Saved ${timeLabel(lastSavedAt)}`
           : "";
 
+  const checksFailing = checks.filter((c) => !c.ok).length;
+
+  function jumpTo(blockId: string) {
+    document.getElementById(`blk-${blockId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (window.innerWidth < 1200) setOutlineOpen(false);
+  }
+
   return (
-    <AdminShell outline={outline}>
-      {/* ── Sticky action bar */}
-      <div className="writer-top">
-        <div className="writer-top-left">
-          <button type="button" className="ghost mono-sm" onClick={() => router.push("/admin")}>← All articles</button>
-          <div className="seg" aria-label="Edit or preview">
-            <button type="button" className={mode === "edit" ? "on" : ""} onClick={() => setMode("edit")}>Edit</button>
-            <button type="button" className={mode === "preview" ? "on" : ""} onClick={() => setMode("preview")}>Preview</button>
-          </div>
+    <div className="wr">
+      {/* ── Top bar: the only permanent chrome while writing */}
+      <header className="wr-bar">
+        <div className="wr-bar-group">
+          <button type="button" className="wr-icon" title="Back to all articles" aria-label="Back to all articles" onClick={() => router.push("/admin")}>←</button>
           <span className={`status-pill${isPublished ? " live" : ""}`}>{isPublished ? "Live" : "Draft"}</span>
+          <span className={`save-state wr-hide-sm${notice?.kind === "error" ? " error" : ""}`}>{statusText}</span>
         </div>
-        <div className="writer-top-right mono">
-          <span style={{ color: "var(--ink-3)" }}>{stats.words} words · {stats.minutes} min</span>
-          <span className={`save-state${notice?.kind === "error" ? " error" : ""}`}>{statusText}</span>
-          {isPublished && savedSlug ? (
-            <Link href={`/articles/${savedSlug}`} target="_blank" style={{ color: "var(--verd)" }}>View live →</Link>
-          ) : null}
+        <div className="wr-bar-group">
+          <button
+            type="button"
+            className={`wr-tool${outlineOpen ? " on" : ""}`}
+            title="Outline"
+            aria-pressed={outlineOpen}
+            onClick={() => {
+              setOutlineOpen((v) => !v);
+              setSettingsOpen(false);
+            }}
+          >
+            <span aria-hidden>☰</span>
+            <span className="wr-hide-sm">Outline</span>
+          </button>
+          <button
+            type="button"
+            className={`wr-tool${mode === "preview" ? " on" : ""}`}
+            title={mode === "preview" ? "Back to editing" : "Preview as a reader"}
+            aria-pressed={mode === "preview"}
+            onClick={() => setMode((m) => (m === "preview" ? "edit" : "preview"))}
+          >
+            <span aria-hidden>◉</span>
+            <span className="wr-hide-sm">{mode === "preview" ? "Edit" : "Preview"}</span>
+          </button>
+          <div style={{ position: "relative" }}>
+            <button type="button" className={`wr-tool${helpOpen ? " on" : ""}`} title="Keyboard and formatting help" aria-pressed={helpOpen} onClick={() => setHelpOpen((v) => !v)}>
+              <span aria-hidden>?</span>
+              <span className="wr-hide-sm">Help</span>
+            </button>
+            {helpOpen ? (
+              <div className="wr-pop">
+                <div className="wr-pop-head">
+                  <span className="mono-sm" style={{ color: "var(--copper)" }}>Writing shortcuts</span>
+                  <button type="button" className="ghost" aria-label="Close" onClick={() => setHelpOpen(false)}>✕</button>
+                </div>
+                <table className="cheat-table">
+                  <tbody>
+                    {CHEATSHEET.map((row) => (
+                      <tr key={row.type}>
+                        <td><code>{row.type}</code></td>
+                        <td>{row.result}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p style={{ margin: "10px 0 0", fontSize: "0.82rem", color: "var(--ink-3)" }}>
+                  Click into any block and select text for the formatting buttons. The <a href="/admin/kit" target="_blank">style guide</a> shows how each block looks.
+                </p>
+              </div>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            className={`wr-tool${settingsOpen ? " on" : ""}`}
+            title="Article settings: topic, date, cover image, publish checklist"
+            aria-pressed={settingsOpen}
+            onClick={() => {
+              setSettingsOpen((v) => !v);
+              setOutlineOpen(false);
+            }}
+          >
+            <span aria-hidden>⚙</span>
+            <span className="wr-hide-sm">Settings</span>
+            {checksFailing ? <span className="wr-dot" title={`${checksFailing} item(s) to check before publishing`} /> : null}
+          </button>
           {isPublished ? (
-            <>
-              <button type="button" className="secondary-btn" disabled={saving} onClick={() => commit("draft")} title="Take the article off the site and keep it as a draft">Unpublish</button>
-              <button type="button" className="primary-btn" disabled={saving || !dirty} onClick={() => commit("published")}>Save changes</button>
-            </>
+            <button type="button" className="primary-btn" disabled={saving || !dirty} onClick={() => commit("published")} title={dirty ? "Push your changes to the live article" : "No changes to save"}>
+              Save changes
+            </button>
           ) : (
-            <>
-              <button type="button" className="secondary-btn" disabled={saving} onClick={() => commit("draft")}>Save draft</button>
-              <button type="button" className="primary-btn" disabled={saving} onClick={() => commit("published")}>Publish</button>
-            </>
+            <button type="button" className="primary-btn" disabled={saving} onClick={() => commit("published")} title="Put this article on the site">
+              Publish
+            </button>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* ── Notices */}
+      {/* ── Banners */}
       {conflict ? (
-        <div className="writer-banner danger">
+        <div className="writer-banner danger wr-banner">
           <b>Your changes were not saved.</b> This article was edited somewhere else after you opened this page. Your text is kept as a local backup.{" "}
           <button type="button" className="link-btn" onClick={() => window.location.reload()}>Reload to get the latest version</button>
         </div>
       ) : null}
       {backup ? (
-        <div className="writer-banner">
+        <div className="writer-banner wr-banner">
           <b>Unsaved work found</b> from {timeLabel(backup.at)}, newer than the saved version.{" "}
           <button type="button" className="link-btn" onClick={() => { setDraft(backup.draft); setDirty(true); setBackup(null); }}>Restore it</button>
           {" · "}
           <button type="button" className="link-btn" onClick={() => { try { localStorage.removeItem(backupKey); } catch {} setBackup(null); }}>Discard</button>
         </div>
       ) : null}
+
+      <div className={`wr-body${outlineOpen ? " has-outline" : ""}${settingsOpen ? " has-settings" : ""}`}>
+        {/* ── Outline panel */}
+        {outlineOpen ? (
+          <aside className="wr-panel wr-outline" aria-label="Outline">
+            <div className="wr-panel-head">
+              <span className="mono-sm" style={{ color: "var(--copper)" }}>Outline</span>
+              <button type="button" className="ghost" aria-label="Close outline" onClick={() => setOutlineOpen(false)}>✕</button>
+            </div>
+            <div className="wr-panel-meta mono-sm">{stats.words} words · {stats.minutes} min read</div>
+            {outline.length <= 1 ? (
+              <p className="wr-panel-empty">Chapters and headings show up here as you add them. Type <code>## </code> at the start of a line to make a chapter.</p>
+            ) : (
+              <div className="wr-outline-list">
+                {outline.map((o) => (
+                  <button key={o.id} type="button" className="outline-item" style={{ paddingLeft: o.indent }} title={o.text} onClick={() => jumpTo(o.id)}>
+                    {o.text}
+                  </button>
+                ))}
+              </div>
+            )}
+          </aside>
+        ) : null}
+
+        {/* ── Canvas */}
+        <main className="wr-canvas">
+          {previewArticle ? (
+            <>
+              <div className="preview-bar">
+                <span>This is how the article will look to readers.{dirty ? " Unsaved changes are shown here but not saved yet." : ""}</span>
+                <div className="seg" aria-label="Preview theme">
+                  <button type="button" className={previewTheme === "light" ? "on" : ""} onClick={() => setPreviewTheme("light")}>Light</button>
+                  <button type="button" className={previewTheme === "dark" ? "on" : ""} onClick={() => setPreviewTheme("dark")}>Dark</button>
+                </div>
+              </div>
+              <div className={`preview-frame reader${previewTheme === "light" ? " reader-light" : ""}`}>
+                <ArticleView article={previewArticle} chrome={false} />
+              </div>
+            </>
+          ) : (
+            <div className="wr-doc">
+              <div id="blk-title" className="wr-head">
+                <input
+                  value={draft.kicker}
+                  onChange={(e) => patch({ kicker: e.target.value })}
+                  placeholder="Small line above the title (optional)"
+                  className="mono blk-label wr-kicker"
+                />
+                <textarea
+                  rows={1}
+                  value={draft.title}
+                  onChange={(e) => patch({ title: e.target.value.replace(/\n/g, "") })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      document.querySelector<HTMLTextAreaElement>("textarea[data-field=dek]")?.focus();
+                    }
+                  }}
+                  placeholder="Title"
+                  className="wr-title"
+                />
+                <textarea
+                  rows={1}
+                  data-field="dek"
+                  value={draft.dek}
+                  onChange={(e) => patch({ dek: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      requestFocus(draft.blocks[0]?.id, "start");
+                    }
+                  }}
+                  placeholder="Subtitle — one or two sentences on what this is about"
+                  className="wr-dek"
+                />
+              </div>
+
+              <div className="blocks">
+                {draft.blocks.map((b, i) => (
+                  <BlockEditor
+                    key={b.id}
+                    block={b}
+                    index={i}
+                    count={draft.blocks.length}
+                    focusReq={focusReq && focusReq.id === b.id ? focusReq : null}
+                    onChange={patchBlock}
+                    onRemove={removeBlock}
+                    onMove={moveBlock}
+                    onInsertAfter={insertAfter}
+                    onSplit={splitBlock}
+                    onBackspaceEmpty={backspaceEmpty}
+                    onUpload={upload}
+                  />
+                ))}
+              </div>
+
+              <div className="add-block">
+                <button type="button" className="add-block-btn" onClick={() => insertAfter(null, "p")}>+ Paragraph</button>
+                <div style={{ position: "relative" }}>
+                  <button type="button" className="add-block-btn" onClick={() => setAddMenuOpen((v) => !v)}>+ Other block…</button>
+                  {addMenuOpen ? (
+                    <InsertMenu
+                      title="Add at the end"
+                      onPick={(type) => {
+                        setAddMenuOpen(false);
+                        insertAfter(null, type);
+                      }}
+                      onClose={() => setAddMenuOpen(false)}
+                    />
+                  ) : null}
+                </div>
+                <button type="button" className="link-btn" style={{ fontSize: "0.85rem" }} onClick={() => { setSettingsOpen(true); setImportOpen(true); }}>
+                  Paste a whole article
+                </button>
+              </div>
+
+              {!id && !dirty ? (
+                <p className="wr-hint">
+                  Press <b>Enter</b> for a new paragraph, type <b>/</b> on an empty line for chapters, headings, quotes, tables and code. Drafts save themselves as you type.
+                </p>
+              ) : null}
+            </div>
+          )}
+        </main>
+
+        {/* ── Settings panel */}
+        {settingsOpen ? (
+          <aside className="wr-panel wr-settings" aria-label="Article settings">
+            <div className="wr-panel-head">
+              <span className="mono-sm" style={{ color: "var(--copper)" }}>Article settings</span>
+              <button type="button" className="ghost" aria-label="Close settings" onClick={() => setSettingsOpen(false)}>✕</button>
+            </div>
+
+            <section className="wr-sec">
+              <label className="wr-field">
+                <span className="field-label">Topic</span>
+                <select
+                  value={topicSelectValue}
+                  onChange={(e) => {
+                    if (e.target.value === NEW_TOPIC) {
+                      setAddingTopic(true);
+                      patch({ topic: "" });
+                    } else {
+                      setAddingTopic(false);
+                      patch({ topic: e.target.value });
+                    }
+                  }}
+                >
+                  <option value="">Choose a topic…</option>
+                  {topicOptions.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                  <option value={NEW_TOPIC}>+ Add a new topic…</option>
+                </select>
+                {topicSelectValue === NEW_TOPIC ? (
+                  <input autoFocus value={draft.topic} onChange={(e) => patch({ topic: e.target.value })} placeholder="Type the new topic name, e.g. History" />
+                ) : null}
+              </label>
+              <label className="wr-field">
+                <span className="field-label">Publish date</span>
+                <input type="date" value={draft.publishDate} onChange={(e) => patch({ publishDate: e.target.value })} />
+              </label>
+              <label className="wr-field">
+                <span className="field-label">Web address</span>
+                <input value={slug ? `/articles/${slug}` : ""} readOnly placeholder="Made from the title" />
+              </label>
+              <label className="wr-check">
+                <input type="checkbox" checked={draft.featured} onChange={(e) => patch({ featured: e.target.checked })} style={{ accentColor: "var(--verd)", width: "auto" }} />
+                <span>Feature on the home page <span className="field-help">Shown large at the top. Only one article can be featured.</span></span>
+              </label>
+            </section>
+
+            <section className="wr-sec">
+              <span className="field-label">Cover image (optional)</span>
+              <label
+                className="drop-zone"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  const file = e.dataTransfer.files[0];
+                  if (!file) return;
+                  const url = await upload(file);
+                  if (url) patch({ leadPlateUrl: url });
+                }}
+              >
+                {draft.leadPlateUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={draft.leadPlateUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <span className="mono-sm">Click or drop an image<br />Shown at the top of the article and on the home page</span>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const url = await upload(file);
+                    if (url) patch({ leadPlateUrl: url });
+                  }}
+                />
+              </label>
+              <input value={draft.leadPlateUrl ?? ""} onChange={(e) => patch({ leadPlateUrl: e.target.value.trim() || null })} placeholder="…or paste an image address" aria-label="Cover image address" />
+              <input value={draft.leadPlateCaption} onChange={(e) => patch({ leadPlateCaption: e.target.value })} placeholder="Caption (optional)" />
+              {draft.leadPlateUrl ? (
+                <button type="button" className="link-btn" style={{ alignSelf: "flex-start", fontSize: "0.85rem" }} onClick={() => patch({ leadPlateUrl: null })}>Remove image</button>
+              ) : null}
+            </section>
+
+            <section className="wr-sec">
+              <span className="field-label">Before you publish</span>
+              <div className="wr-checks">
+                {checks.map((c) => (
+                  <div key={c.label} className="check-row">
+                    <span className={`check-dot${c.ok ? " ok" : ""}`} aria-hidden />
+                    <span style={{ color: c.ok ? "var(--ink-2)" : "var(--ink)" }}>{c.label}</span>
+                  </div>
+                ))}
+              </div>
+              {isPublished && savedSlug ? (
+                <Link href={`/articles/${savedSlug}`} target="_blank" className="link-btn" style={{ fontSize: "0.88rem" }}>View the live article →</Link>
+              ) : null}
+              {isPublished ? (
+                <button type="button" className="secondary-btn" disabled={saving} onClick={() => commit("draft")} title="Take the article off the site and keep it as a draft">Unpublish</button>
+              ) : (
+                <button type="button" className="secondary-btn" disabled={saving} onClick={() => commit("draft")}>Save draft now</button>
+              )}
+            </section>
+
+            <section className="wr-sec">
+              <button type="button" className="wr-disclosure" aria-expanded={importOpen} onClick={() => setImportOpen((v) => !v)}>
+                <span className="field-label" style={{ margin: 0 }}>Paste a whole article</span>
+                <span aria-hidden>{importOpen ? "−" : "+"}</span>
+              </button>
+              {importOpen ? (
+                <div className="import-panel" style={{ marginBottom: 0 }}>
+                  <ul className="import-rules">
+                    <li>Blank line = new paragraph. <code># Title</code> on the first line = article title.</li>
+                    <li><code>## Chapter</code>, <code>### Heading</code>, <code>&gt; quote</code>, <code>-</code> or <code>1.</code> lists, <code>```</code> code, <code>|</code> table rows.</li>
+                    <li><code>!!! key Label</code> (or <code>warn</code>, <code>exam</code>) turns the next paragraph into that box.</li>
+                  </ul>
+                  <textarea
+                    rows={10}
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                    placeholder={"# My article title\n\nFirst paragraph…\n\n## First chapter\n\n…"}
+                    style={{ fontFamily: "var(--font-mono)", fontSize: 12.5, lineHeight: 1.55, background: "var(--panel-2)", border: "1px solid var(--rule)", borderRadius: 2, padding: 10 }}
+                  />
+                  <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                    <button type="button" className="primary-btn" disabled={!importText.trim()} onClick={() => runImport(false)}>Add to the end</button>
+                    <button type="button" className="secondary-btn" disabled={!importText.trim()} onClick={() => runImport(true)}>Replace everything</button>
+                  </div>
+                </div>
+              ) : null}
+            </section>
+
+            <section className="wr-sec wr-danger">
+              <span className="field-label" style={{ color: "var(--verm)" }}>Start over</span>
+              <button type="button" className="secondary-btn" onClick={clearAll}>Clear everything</button>
+              {id ? (
+                <button type="button" className="secondary-btn danger-btn" disabled={saving} onClick={deleteArticle}>Delete article</button>
+              ) : null}
+              <span className="field-help">Clearing only empties this screen until you save. Deleting removes the article permanently, including from the live site.</span>
+            </section>
+          </aside>
+        ) : null}
+      </div>
+
+      {/* Click-away scrim for panels on small screens */}
+      {outlineOpen || settingsOpen ? (
+        <button type="button" className="wr-scrim" aria-label="Close panel" onClick={() => { setOutlineOpen(false); setSettingsOpen(false); }} />
+      ) : null}
+
+      {/* Undo toast */}
       {removed ? (
-        <div className="undo-bar">
+        <div className="wr-toast" role="status">
           <span>Block removed.</span>
           <button type="button" className="link-btn" onClick={undoRemove}>Undo</button>
           <button type="button" className="ghost" aria-label="Dismiss" onClick={() => setRemoved(null)}>✕</button>
         </div>
       ) : null}
-
-      {previewArticle ? (
-        <>
-          <div className="preview-bar">
-            <span>This is how the article will look to readers.{dirty ? " Unsaved changes are shown here but not saved yet." : ""}</span>
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <div className="seg" aria-label="Preview theme">
-                <button type="button" className={previewTheme === "light" ? "on" : ""} onClick={() => setPreviewTheme("light")}>Light</button>
-                <button type="button" className={previewTheme === "dark" ? "on" : ""} onClick={() => setPreviewTheme("dark")}>Dark</button>
-              </div>
-              <button type="button" className="secondary-btn" onClick={() => setMode("edit")}>Back to editing</button>
-            </div>
-          </div>
-          <div className={`preview-frame reader${previewTheme === "light" ? " reader-light" : ""}`}>
-            <ArticleView article={previewArticle} chrome={false} />
-          </div>
-        </>
-      ) : null}
-
-      {mode === "edit" && !id ? (
-        <p className="writer-intro">
-          <b>How this works:</b> give the article a title and a subtitle, then just write. Press <b>Enter</b> for a new paragraph, type <b>/</b> on an empty line to pick a block type
-          (chapter, heading, quote, table, code…), or paste a whole article at once. Drafts save themselves as you type. <b>Publish</b> puts it on the site.
-        </p>
-      ) : null}
-
-      <div className="writer-form" hidden={mode !== "edit"}>
-        <div style={{ maxWidth: 760, minWidth: 0 }}>
-          <div id="blk-title">
-            <FieldLabel>Small line above the title (optional)</FieldLabel>
-            <input
-              value={draft.kicker}
-              onChange={(e) => patch({ kicker: e.target.value })}
-              placeholder="e.g. Study edition · Part 1"
-              className="mono blk-label"
-              style={{ color: "var(--copper)", marginBottom: 18 }}
-            />
-            <FieldLabel>Title</FieldLabel>
-            <textarea
-              rows={1}
-              value={draft.title}
-              onChange={(e) => patch({ title: e.target.value.replace(/\n/g, "") })}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  (document.querySelector<HTMLTextAreaElement>("textarea[data-field=dek]") ?? null)?.focus();
-                }
-              }}
-              placeholder="Article title"
-              style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.2rem, 4vw, 3.2rem)", letterSpacing: "-0.02em", lineHeight: 1.02, marginBottom: 18 }}
-            />
-            <FieldLabel>Subtitle</FieldLabel>
-            <textarea
-              rows={1}
-              data-field="dek"
-              value={draft.dek}
-              onChange={(e) => patch({ dek: e.target.value })}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  requestFocus(draft.blocks[0]?.id, "start");
-                }
-              }}
-              placeholder="One or two sentences saying what this article is about. Shown under the title and in the article list."
-              style={{ fontSize: "1.12rem", color: "var(--ink-2)", lineHeight: 1.5, marginBottom: 36, paddingBottom: 28, borderBottom: "1px solid var(--rule)" }}
-            />
-          </div>
-
-          <div className="body-head">
-            <FieldLabel>Article body</FieldLabel>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button type="button" className="secondary-btn" onClick={() => setImportOpen((v) => !v)}>
-                {importOpen ? "Close paste box" : "Paste a whole article"}
-              </button>
-            </div>
-          </div>
-
-          {importOpen ? (
-            <div className="import-panel">
-              <p style={{ margin: "0 0 10px", fontSize: "0.9rem", color: "var(--ink-2)" }}>
-                Paste plain text or Markdown. It is split into blocks you can then edit, reorder, or change the type of.
-              </p>
-              <ul className="import-rules">
-                <li>A blank line starts a new paragraph. <code># Title</code> on the first line becomes the article title.</li>
-                <li><code>## Chapter</code> starts a chapter, <code>### Heading</code> a heading, <code>&gt; text</code> a quote, <code>-</code> or <code>1.</code> a list, <code>```</code> a code block.</li>
-                <li>Rows with <code>|</code> between cells become a table (first row is the header).</li>
-                <li><code>!!! key Remember this</code>, <code>!!! warn Common mistake</code> or <code>!!! exam Exam tip</code> on its own line turns the next paragraph into that box, with the label after the type.</li>
-              </ul>
-              <textarea
-                rows={12}
-                value={importText}
-                onChange={(e) => setImportText(e.target.value)}
-                placeholder={"# My article title\n\nThe first paragraph becomes the opening paragraph.\n\n## First chapter\n\nMore paragraphs here…\n\n!!! key Remember this\nThe one thing to take away."}
-                style={{ fontFamily: "var(--font-mono)", fontSize: 13, lineHeight: 1.6, background: "var(--panel-2)", border: "1px solid var(--rule)", borderRadius: 2, padding: 12 }}
-              />
-              <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
-                <button type="button" className="primary-btn" disabled={!importText.trim()} onClick={() => runImport(false)}>Add to the end</button>
-                <button type="button" className="secondary-btn" disabled={!importText.trim()} onClick={() => runImport(true)}>Replace everything</button>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="blocks">
-            {draft.blocks.map((b, i) => (
-              <BlockEditor
-                key={b.id}
-                block={b}
-                index={i}
-                count={draft.blocks.length}
-                focusReq={focusReq && focusReq.id === b.id ? focusReq : null}
-                onChange={patchBlock}
-                onRemove={removeBlock}
-                onMove={moveBlock}
-                onInsertAfter={insertAfter}
-                onSplit={splitBlock}
-                onBackspaceEmpty={backspaceEmpty}
-                onUpload={upload}
-              />
-            ))}
-          </div>
-
-          <div className="add-block">
-            <button type="button" className="add-block-btn" onClick={() => insertAfter(null, "p")}>+ Paragraph</button>
-            <div style={{ position: "relative" }}>
-              <button type="button" className="add-block-btn" onClick={() => setAddMenuOpen((v) => !v)}>+ Other block…</button>
-              {addMenuOpen ? (
-                <InsertMenu
-                  title="Add at the end"
-                  onPick={(type) => {
-                    setAddMenuOpen(false);
-                    insertAfter(null, type);
-                  }}
-                  onClose={() => setAddMenuOpen(false)}
-                />
-              ) : null}
-            </div>
-            <span className="field-help" style={{ margin: 0 }}>Or press Enter at the end of any paragraph. Type / on an empty line for block types.</span>
-          </div>
-
-          <details className="cheat">
-            <summary>Keyboard and formatting cheat sheet</summary>
-            <table>
-              <thead>
-                <tr>
-                  <th>Type or press</th>
-                  <th>You get</th>
-                </tr>
-              </thead>
-              <tbody>
-                {CHEATSHEET.map((row) => (
-                  <tr key={row.type}>
-                    <td><code>{row.type}</code></td>
-                    <td>{row.result}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </details>
-        </div>
-
-        <aside className="writer-side">
-          <div className="meta-card">
-            <span className="mono-sm" style={{ color: "var(--copper)" }}>Settings</span>
-            <label>
-              Topic
-              <select
-                value={topicSelectValue}
-                onChange={(e) => {
-                  if (e.target.value === NEW_TOPIC) {
-                    setAddingTopic(true);
-                    patch({ topic: "" });
-                  } else {
-                    setAddingTopic(false);
-                    patch({ topic: e.target.value });
-                  }
-                }}
-              >
-                <option value="">Choose a topic…</option>
-                {topicOptions.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-                <option value={NEW_TOPIC}>+ Add a new topic…</option>
-              </select>
-              {topicSelectValue === NEW_TOPIC ? (
-                <input className="topic-new" autoFocus value={draft.topic} onChange={(e) => patch({ topic: e.target.value })} placeholder="Type the new topic name, e.g. History" />
-              ) : null}
-              <span className="field-help">Topics group articles and appear as filters on the home page.</span>
-            </label>
-            <label>
-              Web address
-              <input value={slug ? `/articles/${slug}` : ""} readOnly placeholder="Made from the title" />
-            </label>
-            <label>
-              Publish date
-              <input type="date" value={draft.publishDate} onChange={(e) => patch({ publishDate: e.target.value })} />
-            </label>
-            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.9rem", cursor: "pointer" }}>
-              <input type="checkbox" checked={draft.featured} onChange={(e) => patch({ featured: e.target.checked })} style={{ accentColor: "var(--verd)", width: "auto", marginTop: 3 }} />
-              <span>
-                Feature on the home page
-                <span className="field-help">Shows this article large at the top. Only one article can be featured.</span>
-              </span>
-            </label>
-          </div>
-
-          <div className="meta-card">
-            <span className="mono-sm" style={{ color: "var(--copper)" }}>Cover image (optional)</span>
-            <label
-              className="drop-zone"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={async (e) => {
-                e.preventDefault();
-                const file = e.dataTransfer.files[0];
-                if (!file) return;
-                const url = await upload(file);
-                if (url) patch({ leadPlateUrl: url });
-              }}
-            >
-              {draft.leadPlateUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={draft.leadPlateUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              ) : (
-                <span className="mono-sm">Click or drop an image<br />Shown at the top of the article and on the home page</span>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const url = await upload(file);
-                  if (url) patch({ leadPlateUrl: url });
-                }}
-              />
-            </label>
-            {draft.leadPlateUrl ? (
-              <button type="button" className="ghost mono-sm" style={{ alignSelf: "flex-start" }} onClick={() => patch({ leadPlateUrl: null })}>Remove image</button>
-            ) : null}
-            <input value={draft.leadPlateUrl ?? ""} onChange={(e) => patch({ leadPlateUrl: e.target.value.trim() || null })} placeholder="…or paste an image address" aria-label="Cover image address" />
-            <input value={draft.leadPlateCaption} onChange={(e) => patch({ leadPlateCaption: e.target.value })} placeholder="Caption for the cover image (optional)" />
-          </div>
-
-          <div className="meta-card" style={{ padding: 0, gap: 0 }}>
-            <span className="mono-sm" style={{ display: "block", padding: "12px 14px 6px", color: "var(--copper)" }}>Before you publish</span>
-            {checks.map((c) => (
-              <div key={c.label} className="check-row">
-                <span className={`check-dot${c.ok ? " ok" : ""}`} aria-hidden />
-                <span style={{ color: c.ok ? "var(--ink-2)" : "var(--ink)" }}>{c.label}</span>
-              </div>
-            ))}
-            <div className="check-row" style={{ justifyContent: "space-between" }}>
-              <span style={{ color: "var(--ink-2)" }}>Reading time</span>
-              <span className="mono-sm" style={{ color: "var(--ink-3)" }}>{stats.minutes} min</span>
-            </div>
-          </div>
-
-          <p style={{ fontSize: "0.82rem", color: "var(--ink-3)" }}>
-            Not sure which block to use? The <a href="/admin/kit">style guide</a> shows how each one looks on the page.
-          </p>
-
-          <div className="meta-card danger-zone">
-            <span className="mono-sm" style={{ color: "var(--verm)" }}>Start over</span>
-            <button type="button" className="secondary-btn" onClick={clearAll}>Clear everything</button>
-            <span className="field-help">Empties the title, subtitle, images and all blocks on this screen. Nothing changes on the site until you save.</span>
-            {id ? (
-              <>
-                <button type="button" className="secondary-btn danger-btn" disabled={saving} onClick={deleteArticle}>Delete article</button>
-                <span className="field-help">Removes this article permanently, including from the live site if it is published.</span>
-              </>
-            ) : null}
-          </div>
-        </aside>
-      </div>
-    </AdminShell>
+    </div>
   );
 }
