@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArticleView } from "@/components/article/ArticleView";
 import { newBlock } from "@/lib/blocks";
 import { articleStats, toDateInput } from "@/lib/format";
+import { toggleFormat } from "@/lib/formatting";
 import { textToBlocks } from "@/lib/import";
 import { slugify } from "@/lib/slug";
 import type { ArticleDTO, Block, BlockType, Status } from "@/lib/types";
@@ -484,17 +485,15 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   const allowedKeys = activeBlock ? ALLOW[activeBlock.type] ?? DEFAULT_FMTS : [];
   const formats = FMTS.filter((f) => allowedKeys.includes(f.key));
 
+  /** Toggle a format on the focused block's selection (see lib/formatting.ts). */
   function applyFormat(before: string, after: string, fallback: string) {
     if (!active || !activeBlock || !active.el.isConnected) return;
     const ta = active.el;
-    const s = ta.selectionStart;
-    const en = ta.selectionEnd;
-    const v = ta.value;
-    const sel = v.slice(s, en) || fallback;
-    patchBlock(active.id, { text: v.slice(0, s) + before + sel + after + v.slice(en) });
+    const { next, selStart, selEnd } = toggleFormat(ta.value, ta.selectionStart, ta.selectionEnd, before, after, fallback);
+    patchBlock(active.id, { text: next });
     requestAnimationFrame(() => {
       ta.focus();
-      ta.setSelectionRange(s + before.length, s + before.length + sel.length);
+      ta.setSelectionRange(selStart, selEnd);
     });
   }
 

@@ -3407,3 +3407,41 @@ html:has(.wr) {
     pointer-events: none;
   }
 }
+
+/* ══ Code scrolls sideways; any block can be expanded across the canvas ══ */
+.blk-code {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin;
+}
+
+.wr-canvas {
+  container-type: inline-size;
+  --wr-pad: clamp(16px, 4vw, 40px);
+}
+
+.blk.expanded {
+  /* as wide as the canvas allows (up to 1100px), centred over the 740px column */
+  --exp: min(1100px, calc(100cqw - 2 * var(--wr-pad)));
+  width: var(--exp);
+  margin-left: calc((100% - var(--exp)) / 2);
+  background: var(--panel);
+  border-radius: 6px;
+  padding-right: 14px;
+}
+
+.blk.expanded.wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.blk-btn.on {
+  color: var(--verd);
+  border-color: var(--verd);
+}
+
+@media (max-width: 900px) {
+  .blk.expanded {
+    width: 100%;
+    margin-left: 0;
+  }
+}
