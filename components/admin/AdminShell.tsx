@@ -91,10 +91,12 @@ export function AdminShell({
         </div>
         <Link href="/admin/articles/new" className="primary-btn admin-new">+ New article</Link>
         <nav className="admin-nav">{nav}</nav>
-        <div className="admin-side-foot mono-sm">
-          <Link href="/" style={{ color: "var(--ink-3)", textDecoration: "none" }}>View site →</Link>
-          <button type="button" className="ghost" style={{ letterSpacing: "0.12em", textTransform: "uppercase" }} onClick={signOut}>Sign out</button>
-          <ThemeToggle />
+        <div className="admin-side-foot">
+          <Link href="/" className="side-link">View site →</Link>
+          <div className="side-foot-row">
+            <ThemeToggle />
+            <button type="button" className="secondary-btn side-signout" onClick={signOut}>Sign out…</button>
+          </div>
         </div>
       </aside>
 

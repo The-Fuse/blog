@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { SiteDTO } from "@/lib/site";
 import { AdminShell } from "./AdminShell";
 
-export function SiteForm({ site }: { site: SiteDTO }) {
+export function SiteForm({ site, counts }: { site: SiteDTO; counts: { all: number; published: number; drafts: number } }) {
   const [form, setForm] = useState(site);
   const [state, setState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
 
@@ -26,7 +26,7 @@ export function SiteForm({ site }: { site: SiteDTO }) {
   }
 
   return (
-    <AdminShell>
+    <AdminShell counts={counts}>
       <div className="writer-top">
         <div className="writer-top-left">
           <div>

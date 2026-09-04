@@ -3153,3 +3153,67 @@ html[data-theme="light"] .reader,
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Phone shell: header row takes only its own height; content gets all spare height.
+   Without this, a short list (e.g. one draft) let the grid split spare space between rows,
+   leaving a big gap under the header. */
+@media (max-width: 900px) {
+  .admin-shell {
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
+  }
+}
+
+/* Link-styled buttons keep their button text colour on hover (the global a:hover turns links copper) */
+a.primary-btn,
+a.primary-btn:hover,
+a.secondary-btn,
+a.secondary-btn:hover {
+  text-decoration: none;
+}
+
+a.primary-btn,
+a.primary-btn:hover {
+  color: var(--ground);
+}
+
+a.secondary-btn:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+
+/* Sidebar footer: the site link and sign-out are clearly different controls, well apart */
+.admin-side-foot {
+  gap: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule-2);
+  align-items: stretch;
+}
+
+.side-link {
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+
+.side-link:hover {
+  color: var(--verd);
+}
+
+.side-foot-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.side-signout {
+  color: var(--ink-3);
+  border-style: dashed;
+}
+
+.side-signout:hover {
+  color: var(--verm);
+  border-color: var(--verm);
+  border-style: solid;
+}
