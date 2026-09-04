@@ -2592,7 +2592,7 @@ html[data-theme="light"] .reader,
 }
 
 .admin-row {
-  grid-template-columns: minmax(0, 1fr) 110px 120px 110px 170px 0;
+  grid-template-columns: minmax(0, 1fr) 110px 120px 110px 44px;
 }
 
 .admin-row.busy {
@@ -2647,20 +2647,12 @@ html[data-theme="light"] .reader,
   gap: 6px;
 }
 
-.row-actions {
-  display: flex;
-  gap: 14px;
-  justify-content: flex-end;
-}
 
-.row-actions .ghost:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
 
 .row-menu-wrap {
   position: relative;
-  display: none;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .row-menu-btn {
@@ -2711,7 +2703,7 @@ html[data-theme="light"] .reader,
 
 @media (max-width: 1100px) {
   .admin-row {
-    grid-template-columns: minmax(0, 1fr) 110px 170px 0;
+    grid-template-columns: minmax(0, 1fr) 110px 44px;
   }
 }
 
@@ -2750,11 +2742,7 @@ html[data-theme="light"] .reader,
   .row-meta {
     display: block;
   }
-  .row-status,
-  .row-actions {
+  .row-status {
     display: none;
-  }
-  .row-menu-wrap {
-    display: block;
   }
 }

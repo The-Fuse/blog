@@ -147,11 +147,6 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
               {published ? "Published" : "Draft"}
             </span>
-            <div className="row-actions mono-sm">
-              <button type="button" className="ghost" onClick={() => edit(r)}>Edit</button>
-              <button type="button" className="ghost" disabled={busy} onClick={() => toggle(r)}>{published ? "Unpublish" : "Publish"}</button>
-              <button type="button" className="ghost danger" disabled={busy} onClick={() => remove(r)}>Delete</button>
-            </div>
             <RowMenu article={r} onEdit={() => edit(r)} onToggle={() => toggle(r)} onDelete={() => remove(r)} />
           </div>
         );
