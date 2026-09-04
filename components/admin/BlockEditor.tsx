@@ -216,8 +216,9 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
               value={block.label || ""}
               onChange={(e) => onChange(block.id, { label: e.target.value })}
               placeholder={meta.labelHint}
-              className="mono-sm blk-label"
+              className={`blk-label blk-label-opt${block.label ? " has-value" : ""}`}
               style={{ color: meta.accent }}
+              aria-label="Optional label"
             />
           ) : null}
 
@@ -265,7 +266,7 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
 
           {focused && allowed.length > 0 ? (
             <div className="fmt-bar">
-              <span className="mono-sm" style={{ color: "var(--ink-3)", alignSelf: "center", marginRight: 4 }}>Select text, then:</span>
+              <span className="fmt-hint">Select text, then</span>
               {allowed.map((f) => (
                 <button
                   key={f.key}
@@ -311,9 +312,10 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
             <input
               value={block.cite || ""}
               onChange={(e) => onChange(block.id, { cite: e.target.value })}
-              placeholder="Who said it, or where it is from — e.g. Berkeley, Principles §23"
-              className="mono-sm blk-label"
+              placeholder="Who said it, or where it is from"
+              className={`blk-label blk-label-opt${block.cite ? " has-value" : ""}`}
               style={{ marginTop: 8, color: "var(--copper)" }}
+              aria-label="Quote source"
             />
           ) : null}
         </div>
@@ -331,9 +333,9 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
             ))}
           </select>
           <div className="blk-actions">
-            <button type="button" className="ghost" title="Move up" disabled={index === 0} onClick={() => onMove(block.id, -1)}>↑</button>
-            <button type="button" className="ghost" title="Move down" disabled={index === count - 1} onClick={() => onMove(block.id, 1)}>↓</button>
-            <button type="button" className="ghost" title="Remove this block (you can undo)" onClick={() => onRemove(block.id)}>✕</button>
+            <button type="button" className="blk-btn" title="Move up" aria-label="Move block up" disabled={index === 0} onClick={() => onMove(block.id, -1)}>↑</button>
+            <button type="button" className="blk-btn" title="Move down" aria-label="Move block down" disabled={index === count - 1} onClick={() => onMove(block.id, 1)}>↓</button>
+            <button type="button" className="blk-btn danger" title="Remove this block (you can undo)" aria-label="Remove block" onClick={() => onRemove(block.id)}>✕</button>
           </div>
         </div>
       </div>

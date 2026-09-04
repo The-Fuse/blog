@@ -10,6 +10,7 @@ import { textToBlocks } from "@/lib/import";
 import { slugify } from "@/lib/slug";
 import type { ArticleDTO, Block, BlockType, Status } from "@/lib/types";
 import { BlockEditor, type FocusRequest } from "./BlockEditor";
+import { useConfirm } from "./ConfirmDialog";
 import { InsertMenu } from "./InsertMenu";
 
 type Draft = {
@@ -122,6 +123,23 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   const [helpOpen, setHelpOpen] = useState(false);
   const [focusReq, setFocusReq] = useState<FocusRequest | null>(null);
   const nonce = useRef(0);
+  const [confirm, confirmDialog] = useConfirm();
+  // Autosave is off by default; the choice is remembered in this browser.
+  const [autosave, setAutosave] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        setAutosave(localStorage.getItem("writer-autosave") === "on");
+      } catch {}
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
+  function toggleAutosave(on: boolean) {
+    setAutosave(on);
+    try {
+      localStorage.setItem("writer-autosave", on ? "on" : "off");
+    } catch {}
+  }
 
   const backupKey = `writer-backup-${id ?? "new"}`;
   const draftRef = useRef(draft);
@@ -299,12 +317,12 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   // Autosave drafts to the server a couple of seconds after typing stops. Published articles are
   // never pushed live automatically; they get a local backup instead and an explicit "Save changes".
   useEffect(() => {
-    if (!dirty || saving || conflict || savedStatus !== "draft") return;
+    if (!autosave || !dirty || saving || conflict || savedStatus !== "draft") return;
     const hasContent = draft.title.trim() || draft.blocks.some((b) => b.text.trim() || b.imageUrl);
     if (!hasContent) return;
     const t = setTimeout(() => void commitRef.current("draft", { silent: true }), 2000);
     return () => clearTimeout(t);
-  }, [draft, dirty, saving, conflict, savedStatus]);
+  }, [autosave, draft, dirty, saving, conflict, savedStatus]);
 
   // Local backup of whatever is on screen, so a crash or a stale-save refusal never loses work.
   useEffect(() => {
@@ -358,8 +376,9 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   }, [dirty, savedStatus]);
 
   // ── Destructive actions
-  function clearAll() {
-    if (!window.confirm("Clear the title, subtitle, images and all blocks? Nothing is saved until you save.")) return;
+  async function clearAll() {
+    const ok = await confirm({ title: "Clear everything on this screen?", message: "Title, subtitle, images and all blocks are emptied. Nothing changes on the site until you save.", confirmLabel: "Clear", danger: true });
+    if (!ok) return;
     const empty = fromArticle(null);
     setDraft({ ...empty, topic: draft.topic, publishDate: draft.publishDate });
     setDirty(true);
@@ -368,7 +387,8 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
 
   async function deleteArticle() {
     if (!id || saving) return;
-    if (!window.confirm(`Delete "${draft.title || "this article"}" permanently? This cannot be undone.`)) return;
+    const ok = await confirm({ title: `Delete “${draft.title || "this article"}”?`, message: "This removes it permanently, including from the live site. It cannot be undone.", confirmLabel: "Delete", danger: true });
+    if (!ok) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/articles/${id}`, { method: "DELETE" });
@@ -390,11 +410,14 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   }
 
   // ── Paste import
-  function runImport(replace: boolean) {
+  async function runImport(replace: boolean) {
     const parsed = textToBlocks(importText);
     if (!parsed.blocks.length && !parsed.title) return;
     const hasContent = draft.blocks.some((b) => b.text.trim() || b.imageUrl);
-    if (replace && hasContent && !window.confirm("Replace everything written so far with the pasted text?")) return;
+    if (replace && hasContent) {
+      const ok = await confirm({ title: "Replace everything written so far?", message: "The current blocks are removed and the pasted text takes their place.", confirmLabel: "Replace", danger: true });
+      if (!ok) return;
+    }
     const next: Partial<Draft> = {};
     const incoming = [...parsed.blocks];
     if (parsed.title) {
@@ -538,9 +561,23 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
               Save changes
             </button>
           ) : (
-            <button type="button" className="primary-btn" disabled={saving} onClick={() => commit("published")} title="Put this article on the site">
+            <>
+            <button type="button" className="secondary-btn" disabled={saving || !dirty} onClick={() => commit("draft")} title="Save without publishing">
+              {dirty ? "Save draft" : "Saved"}
+            </button>
+            <button
+              type="button"
+              className="primary-btn"
+              disabled={saving}
+              title="Put this article on the site"
+              onClick={async () => {
+                const ok = await confirm({ title: "Publish this article?", message: "It appears on the site right away.", confirmLabel: "Publish" });
+                if (ok) void commit("published");
+              }}
+            >
               Publish
             </button>
+            </>
           )}
         </div>
       </header>
@@ -678,7 +715,7 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
 
               {!id && !dirty ? (
                 <p className="wr-hint">
-                  Press <b>Enter</b> for a new paragraph, type <b>/</b> on an empty line for chapters, headings, quotes, tables and code. Drafts save themselves as you type.
+                  Press <b>Enter</b> for a new paragraph, type <b>/</b> on an empty line for chapters, headings, quotes, tables and code. {autosave ? "Drafts save themselves as you type." : "Press Cmd/Ctrl+S or Save draft to save."}
                 </p>
               ) : null}
             </div>
@@ -692,6 +729,16 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
               <span className="mono-sm" style={{ color: "var(--copper)" }}>Article settings</span>
               <button type="button" className="ghost" aria-label="Close settings" onClick={() => setSettingsOpen(false)}>✕</button>
             </div>
+
+            <section className="wr-sec">
+              <label className="wr-check">
+                <input type="checkbox" checked={autosave} onChange={(e) => toggleAutosave(e.target.checked)} style={{ accentColor: "var(--verd)", width: "auto" }} />
+                <span>
+                  Save drafts automatically while typing
+                  <span className="field-help">Off by default. Published articles are never changed automatically. Either way, unsaved work is backed up in this browser.</span>
+                </span>
+              </label>
+            </section>
 
             <section className="wr-sec">
               <label className="wr-field">
@@ -789,15 +836,14 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
                   className="secondary-btn"
                   disabled={saving}
                   title="Take the article off the site and keep it as a draft"
-                  onClick={() => {
-                    if (window.confirm("Unpublish this article? It comes off the site and stays saved as a draft.")) void commit("draft");
+                  onClick={async () => {
+                    const ok = await confirm({ title: "Unpublish this article?", message: "It comes off the site and stays saved as a draft.", confirmLabel: "Unpublish" });
+                    if (ok) void commit("draft");
                   }}
                 >
                   Unpublish
                 </button>
-              ) : (
-                <button type="button" className="secondary-btn" disabled={saving} onClick={() => commit("draft")}>Save draft now</button>
-              )}
+              ) : null}
             </section>
 
             <section className="wr-sec">
@@ -843,6 +889,8 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
       {outlineOpen || settingsOpen ? (
         <button type="button" className="wr-scrim" aria-label="Close panel" onClick={() => { setOutlineOpen(false); setSettingsOpen(false); }} />
       ) : null}
+
+      {confirmDialog}
 
       {/* Undo toast */}
       {removed ? (

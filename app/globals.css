@@ -2746,3 +2746,410 @@ html[data-theme="light"] .reader,
     display: none;
   }
 }
+
+/* ══ Writer controls: proper tap targets and legible sizes ══ */
+
+/* Move / remove */
+.blk-btn {
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  color: var(--ink-2);
+  font-size: 16px;
+  line-height: 1;
+  display: inline-grid;
+  place-items: center;
+}
+
+.blk-btn:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+
+.blk-btn.danger:hover:not(:disabled) {
+  color: var(--verm);
+  border-color: var(--verm);
+}
+
+.blk-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.blk-actions {
+  gap: 6px;
+}
+
+/* Type dropdown */
+.type-select {
+  height: 32px;
+  font-size: 11px;
+  padding: 0 8px;
+  border-radius: 6px;
+}
+
+/* Tools: always visible on touch screens; on pointer devices, shown on hover or focus */
+.blk-wrap .blk-tools {
+  opacity: 1;
+}
+
+@media (hover: hover) {
+  .blk-wrap .blk-tools {
+    opacity: 0;
+  }
+  .blk-wrap:hover .blk-tools,
+  .blk-wrap:focus-within .blk-tools {
+    opacity: 1;
+  }
+}
+
+.blk {
+  grid-template-columns: minmax(0, 1fr) 176px;
+}
+
+/* Optional label / source fields appear only while the block is focused or when filled */
+.blk-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.blk-label-opt {
+  display: none;
+}
+
+.blk-label-opt.has-value,
+.blk-wrap:focus-within .blk-label-opt {
+  display: block;
+}
+
+/* Formatting bar */
+.fmt-bar {
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.fmt-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.fmt-hint {
+  align-self: center;
+  flex: none;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  margin-right: 2px;
+}
+
+.fmt-btn {
+  flex: none;
+  height: 30px;
+  padding: 0 11px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  border-radius: 6px;
+}
+
+/* "+" between blocks: visible on touch screens, hover-revealed on pointer devices */
+.blk-insert {
+  height: 22px;
+}
+
+.blk-insert-btn {
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+  font-size: 16px;
+  opacity: 0.55;
+}
+
+@media (hover: hover) {
+  .blk-insert-btn {
+    opacity: 0;
+  }
+  .blk-insert:hover .blk-insert-btn,
+  .blk-insert-btn:focus-visible {
+    opacity: 1;
+  }
+}
+
+/* Top bar icons */
+.wr-tool {
+  height: 38px;
+  font-size: 0.9rem;
+}
+
+.wr-tool > span[aria-hidden] {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.wr-icon {
+  width: 38px;
+  height: 38px;
+  font-size: 20px;
+}
+
+.wr-bar .primary-btn {
+  height: 38px;
+}
+
+/* Table editor */
+.tbl-edit-x {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  opacity: 0.6;
+  border-radius: 6px;
+}
+
+.tbl-edit-actions {
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.tbl-edit-actions .ghost {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  background: var(--panel-2);
+}
+
+.tbl-edit-actions .ghost:hover {
+  border-color: var(--verd);
+}
+
+/* Outline entries and list menu */
+.wr-outline-list .outline-item {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* Phones: bigger targets everywhere */
+@media (max-width: 900px) {
+  .blk-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  .type-select {
+    height: 40px;
+    font-size: 12px;
+  }
+  .blk-actions {
+    gap: 8px;
+  }
+  .fmt-btn {
+    height: 36px;
+    padding: 0 13px;
+    font-size: 12px;
+  }
+  .blk-insert {
+    height: 30px;
+  }
+  .blk-insert-btn {
+    width: 32px;
+    height: 32px;
+    margin-left: -8px;
+    font-size: 18px;
+    opacity: 0.7;
+  }
+  .wr-tool,
+  .wr-icon,
+  .wr-bar .primary-btn {
+    height: 42px;
+  }
+  .wr-tool {
+    padding: 0 11px;
+  }
+  .wr-tool > span[aria-hidden] {
+    font-size: 19px;
+  }
+  .row-menu-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+  }
+  .row-menu button {
+    padding: 13px 14px;
+    font-size: 1rem;
+  }
+  .admin-tabs .admin-nav-btn {
+    padding: 9px 14px;
+    font-size: 0.92rem;
+  }
+  .insert-menu-item {
+    padding: 11px 12px;
+  }
+  .wr-outline-list .outline-item {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 0.95rem;
+  }
+  .tbl-edit-x {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+  .tbl-edit input {
+    padding: 10px 8px;
+    font-size: 1rem;
+  }
+  .blk-label {
+    font-size: 12px;
+  }
+}
+
+/* ══ Confirmation dialog ══ */
+.confirm-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.confirm-box {
+  width: min(420px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 22px 22px 18px;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.7);
+}
+
+.confirm-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.confirm-msg {
+  font-size: 0.95rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.confirm-actions .primary-btn,
+.confirm-actions .secondary-btn {
+  height: 40px;
+  padding: 0 18px;
+}
+
+.confirm-danger {
+  background: var(--verm);
+  color: #fff;
+}
+
+.confirm-danger:hover {
+  background: var(--verm);
+  filter: brightness(1.1);
+}
+
+@media (max-width: 600px) {
+  .confirm-scrim {
+    align-items: end;
+  }
+  .confirm-box {
+    width: 100%;
+    border-radius: 14px 14px 0 0;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+  .confirm-actions {
+    flex-direction: column-reverse;
+  }
+  .confirm-actions .primary-btn,
+  .confirm-actions .secondary-btn {
+    width: 100%;
+    height: 46px;
+  }
+}
+
+/* Phone header menu + floating new-article button */
+.row-menu-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.row-menu-link:hover {
+  background: var(--panel-2);
+  color: var(--ink);
+}
+
+.row-menu-theme {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  color: var(--ink-2);
+  border-top: 1px solid var(--rule-2);
+  border-bottom: 1px solid var(--rule-2);
+  margin: 4px 0;
+}
+
+.admin-fab {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .admin-fab {
+    position: fixed;
+    right: 18px;
+    bottom: calc(18px + env(safe-area-inset-bottom));
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--verd);
+    color: var(--ground);
+    font-size: 30px;
+    line-height: 1;
+    text-decoration: none;
+    box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.6);
+  }
+  .admin-fab:hover {
+    color: var(--ground);
+    background: var(--copper);
+  }
+  .admin-main {
+    padding-bottom: 110px;
+  }
+  .admin-topbar .row-menu {
+    min-width: 200px;
+  }
+}
+
+/* Keep blocks single-column on phones (must follow the desktop grid rule above) */
+@media (max-width: 900px) {
+  .blk,
+  .blk.wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

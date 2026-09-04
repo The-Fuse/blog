@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatShortDate } from "@/lib/format";
 import type { ArticleDTO } from "@/lib/types";
 import { AdminShell } from "./AdminShell";
+import { useConfirm } from "./ConfirmDialog";
 
 type View = "all" | "published" | "drafts";
 
@@ -50,6 +51,7 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
   const [view, setView] = useState<View>(initialView);
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [confirm, confirmDialog] = useConfirm();
 
   const counts = {
     all: articles.length,
@@ -71,10 +73,10 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
 
   async function toggle(article: ArticleDTO) {
     const publishing = article.status !== "published";
-    const ok = window.confirm(
+    const ok = await confirm(
       publishing
-        ? `Publish "${article.title}"? It will appear on the site right away.`
-        : `Unpublish "${article.title}"? It comes off the site and stays saved as a draft.`,
+        ? { title: `Publish “${article.title}”?`, message: "It will appear on the site right away.", confirmLabel: "Publish" }
+        : { title: `Unpublish “${article.title}”?`, message: "It comes off the site and stays saved as a draft.", confirmLabel: "Unpublish" },
     );
     if (!ok) return;
     setBusyId(article.id);
@@ -92,7 +94,8 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
   }
 
   async function remove(article: ArticleDTO) {
-    if (!window.confirm(`Delete "${article.title}" permanently? This cannot be undone.`)) return;
+    const ok = await confirm({ title: `Delete “${article.title}”?`, message: "This removes it permanently, including from the live site. It cannot be undone.", confirmLabel: "Delete", danger: true });
+    if (!ok) return;
     setBusyId(article.id);
     try {
       const res = await fetch(`/api/articles/${article.id}`, { method: "DELETE" });
@@ -156,6 +159,7 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
           {query ? "No titles match your search." : view === "drafts" ? "No drafts. Everything is published." : "Nothing here yet."}
         </p>
       ) : null}
+      {confirmDialog}
     </AdminShell>
   );
 }
