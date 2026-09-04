@@ -2,19 +2,11 @@ import { notFound } from "next/navigation";
 import { ArticleView } from "@/components/article/ArticleView";
 import { getPublishedBySlug, listPublished } from "@/lib/articles";
 
-// Published articles are prerendered at build and cached; new or edited ones render on demand
-// and are cached too. Saving, publishing or deleting an article revalidates the affected paths.
+// Articles render on first visit and are then cached; saving, publishing or deleting an article
+// revalidates the affected paths. Nothing is prerendered at build so the build needs no database
+// round-trips per article.
 export const revalidate = 3600;
 export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  try {
-    const published = await listPublished();
-    return published.map((a) => ({ slug: a.slug }));
-  } catch {
-    return []; // database unreachable at build time: fall back to rendering on demand
-  }
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

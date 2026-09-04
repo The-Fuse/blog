@@ -15,10 +15,13 @@ function poolConfig(connectionString: string) {
   } catch {}
   const sslmode = url?.searchParams.get("sslmode");
   const wantsTls = Boolean(sslmode && sslmode !== "disable") || Boolean(url?.hostname.endsWith("supabase.co") || url?.hostname.endsWith("supabase.com"));
-  if (!wantsTls || !url) return { connectionString };
+  // Small pool and short timeouts: serverless functions and build workers each get their own pool,
+  // so a large default would exhaust the database's connection limit and hang instead of failing.
+  const base = { max: 3, connectionTimeoutMillis: 10_000, idleTimeoutMillis: 10_000 };
+  if (!wantsTls || !url) return { connectionString, ...base };
   url.searchParams.delete("sslmode");
   url.searchParams.delete("uselibpqcompat");
-  return { connectionString: url.toString(), ssl: { rejectUnauthorized: false } };
+  return { connectionString: url.toString(), ssl: { rejectUnauthorized: false }, ...base };
 }
 
 function createPrisma() {
