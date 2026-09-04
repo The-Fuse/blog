@@ -27,6 +27,18 @@ export const metadata: Metadata = {
     template: "%s · Rohit Yadav",
   },
   description: "Long-form study editions of philosophers and of technical ideas.",
+  appleWebApp: {
+    capable: true,
+    title: "Rohit Yadav",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 const themeBoot = `(function(){try{var t=localStorage.getItem('kit-theme');var p=location.pathname;var d=p.indexOf('/articles/')===0?'light':'dark';document.documentElement.setAttribute('data-theme',t||d);}catch(e){}})();`;
