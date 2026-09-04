@@ -784,7 +784,17 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
                 <Link href={`/articles/${savedSlug}`} target="_blank" className="link-btn" style={{ fontSize: "0.88rem" }}>View the live article →</Link>
               ) : null}
               {isPublished ? (
-                <button type="button" className="secondary-btn" disabled={saving} onClick={() => commit("draft")} title="Take the article off the site and keep it as a draft">Unpublish</button>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  disabled={saving}
+                  title="Take the article off the site and keep it as a draft"
+                  onClick={() => {
+                    if (window.confirm("Unpublish this article? It comes off the site and stays saved as a draft.")) void commit("draft");
+                  }}
+                >
+                  Unpublish
+                </button>
               ) : (
                 <button type="button" className="secondary-btn" disabled={saving} onClick={() => commit("draft")}>Save draft now</button>
               )}
