@@ -3217,3 +3217,10 @@ a.secondary-btn:hover {
   border-color: var(--verm);
   border-style: solid;
 }
+
+/* Inside the dashboard, page headers scroll with the page; only the phone tab header sticks */
+.admin-main .writer-top {
+  position: static;
+  margin-top: 0;
+  background: transparent;
+}
