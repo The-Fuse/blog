@@ -12,7 +12,7 @@ export type FocusRequest = { id: string; pos: "start" | "end" | number; nonce: n
 export const TEXT_TYPES: BlockType[] = ["p", "lede", "h3", "chapter", "quote", "key", "warn", "exam", "note"];
 
 /** Inline formatting buttons. `title` is the tooltip and explains what gets typed. */
-const FMTS = [
+export const FMTS = [
   { key: "i", label: "Italic", title: "Italic — wraps the selection in *…*", before: "*", after: "*", fallback: "italic", color: "var(--ink-2)", style: { fontStyle: "italic" } },
   { key: "b", label: "Bold", title: "Bold — wraps the selection in **…**", before: "**", after: "**", fallback: "bold", color: "var(--ink-2)", style: { fontWeight: 700 } },
   { key: "code", label: "Code", title: "Inline code — wraps the selection in backticks", before: "`", after: "`", fallback: "code", color: "var(--ink-2)", style: { fontFamily: "var(--font-mono)" } },
@@ -26,10 +26,10 @@ const FMTS = [
   { key: "concl", label: "Conclusion", title: "Mark this line as the conclusion (∴)", before: "∴ ", after: "", fallback: "", color: "var(--copper)" },
 ] as const;
 
-const DEFAULT_FMTS = ["i", "b", "code", "link", "fn", "cite", "idea", "spirit", "matter"];
+export const DEFAULT_FMTS = ["i", "b", "code", "link", "fn", "cite", "idea", "spirit", "matter"];
 
 /** Which formatting buttons make sense for each block type. Anything not listed gets the default set. */
-const ALLOW: Partial<Record<BlockType, string[]>> = {
+export const ALLOW: Partial<Record<BlockType, string[]>> = {
   code: [],
   table: [],
   steps: ["i", "code", "cite", "p", "concl"],
@@ -95,12 +95,17 @@ type Props = {
   onSplit: (id: string, before: string, after: string) => void;
   onBackspaceEmpty: (id: string) => void;
   onUpload: (file: File) => Promise<string | null>;
+  /** Tells the writer which block's text box has focus, so the top formatting bar can act on it. */
+  onActivate: (id: string, el: HTMLTextAreaElement) => void;
 };
 
-function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, onMove, onInsertAfter, onSplit, onBackspaceEmpty, onUpload }: Props) {
+function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, onMove, onInsertAfter, onSplit, onBackspaceEmpty, onUpload, onActivate }: Props) {
   const meta = BLOCK_META[block.type];
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const [focused, setFocused] = useState(false);
+  // Optional label / source fields are hidden until the author asks for them, so focusing never shifts layout.
+  const [showLabel, setShowLabel] = useState(false);
+  const [showCite, setShowCite] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
   const [slashIndex, setSlashIndex] = useState(0);
 
@@ -117,23 +122,6 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
     const pos = focusReq.pos === "start" ? 0 : focusReq.pos === "end" ? ta.value.length : focusReq.pos;
     ta.setSelectionRange(pos, pos);
   }, [focusReq, block.id]);
-
-  function wrap(before: string, after: string, fallback: string) {
-    return (e: React.MouseEvent) => {
-      e.preventDefault();
-      const ta = taRef.current;
-      if (!ta) return;
-      const s = ta.selectionStart;
-      const en = ta.selectionEnd;
-      const v = ta.value;
-      const sel = v.slice(s, en) || fallback;
-      onChange(block.id, { text: v.slice(0, s) + before + sel + after + v.slice(en) });
-      requestAnimationFrame(() => {
-        ta.focus();
-        ta.setSelectionRange(s + before.length, s + before.length + sel.length);
-      });
-    };
-  }
 
   function pickType(type: BlockType) {
     onChange(block.id, { type, text: type === "list" && block.text.startsWith("/1") ? "1. " : "" });
@@ -204,19 +192,20 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
     }
   }
 
-  const allowed = FMTS.filter((f) => (ALLOW[block.type] ?? DEFAULT_FMTS).includes(f.key));
   const wide = block.type === "table";
 
   return (
     <div className={`blk-wrap${focused ? " focused" : ""}`}>
       <div id={`blk-${block.id}`} className={`blk${wide ? " wide" : ""}`} style={{ borderLeftColor: meta.edge }}>
         <div style={{ minWidth: 0, position: "relative" }}>
-          {meta.labelHint ? (
+          {meta.labelHint && (block.label || showLabel) ? (
             <input
               value={block.label || ""}
+              autoFocus={showLabel && !block.label}
               onChange={(e) => onChange(block.id, { label: e.target.value })}
+              onBlur={() => { if (!block.label) setShowLabel(false); }}
               placeholder={meta.labelHint}
-              className={`blk-label blk-label-opt${block.label ? " has-value" : ""}`}
+              className="blk-label"
               style={{ color: meta.accent }}
               aria-label="Optional label"
             />
@@ -264,23 +253,6 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
             </>
           ) : null}
 
-          {focused && allowed.length > 0 ? (
-            <div className="fmt-bar">
-              <span className="fmt-hint">Select text, then</span>
-              {allowed.map((f) => (
-                <button
-                  key={f.key}
-                  type="button"
-                  className="fmt-btn"
-                  title={f.title}
-                  style={{ color: f.color, ...("style" in f ? f.style : {}) }}
-                  onMouseDown={wrap(f.before, f.after, f.fallback)}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
 
           {block.type === "table" ? (
             <TableEditor value={block.text} onChange={(text) => onChange(block.id, { text })} />
@@ -291,7 +263,10 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
               value={block.text}
               placeholder={index === 0 && block.type === "lede" ? meta.hint : isText ? `${meta.hint}  ·  Type / for block types` : meta.hint}
               style={blockStyle(block.type)}
-              onFocus={() => setFocused(true)}
+              onFocus={(e) => {
+                setFocused(true);
+                onActivate(block.id, e.currentTarget);
+              }}
               onBlur={() => setFocused(false)}
               onChange={(e) => handleChange(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -308,12 +283,14 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
             />
           ) : null}
 
-          {meta.cite ? (
+          {meta.cite && (block.cite || showCite) ? (
             <input
               value={block.cite || ""}
+              autoFocus={showCite && !block.cite}
               onChange={(e) => onChange(block.id, { cite: e.target.value })}
+              onBlur={() => { if (!block.cite) setShowCite(false); }}
               placeholder="Who said it, or where it is from"
-              className={`blk-label blk-label-opt${block.cite ? " has-value" : ""}`}
+              className="blk-label"
               style={{ marginTop: 8, color: "var(--copper)" }}
               aria-label="Quote source"
             />
@@ -333,6 +310,12 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
             ))}
           </select>
           <div className="blk-actions">
+            {meta.labelHint && !block.label && !showLabel ? (
+              <button type="button" className="blk-mini" title={meta.labelHint} onClick={() => setShowLabel(true)}>+ Label</button>
+            ) : null}
+            {meta.cite && !block.cite && !showCite ? (
+              <button type="button" className="blk-mini" title="Add who said it or where it is from" onClick={() => setShowCite(true)}>+ Source</button>
+            ) : null}
             <button type="button" className="blk-btn" title="Move up" aria-label="Move block up" disabled={index === 0} onClick={() => onMove(block.id, -1)}>↑</button>
             <button type="button" className="blk-btn" title="Move down" aria-label="Move block down" disabled={index === count - 1} onClick={() => onMove(block.id, 1)}>↓</button>
             <button type="button" className="blk-btn danger" title="Remove this block (you can undo)" aria-label="Remove block" onClick={() => onRemove(block.id)}>✕</button>

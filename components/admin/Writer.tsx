@@ -9,7 +9,7 @@ import { articleStats, toDateInput } from "@/lib/format";
 import { textToBlocks } from "@/lib/import";
 import { slugify } from "@/lib/slug";
 import type { ArticleDTO, Block, BlockType, Status } from "@/lib/types";
-import { BlockEditor, type FocusRequest } from "./BlockEditor";
+import { ALLOW, BlockEditor, DEFAULT_FMTS, FMTS, type FocusRequest } from "./BlockEditor";
 import { useConfirm } from "./ConfirmDialog";
 import { InsertMenu } from "./InsertMenu";
 
@@ -123,6 +123,9 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   const [helpOpen, setHelpOpen] = useState(false);
   const [focusReq, setFocusReq] = useState<FocusRequest | null>(null);
   const nonce = useRef(0);
+  // The block whose text box was focused last; the formatting row in the top bar acts on it.
+  const [active, setActive] = useState<{ id: string; el: HTMLTextAreaElement } | null>(null);
+  const onActivate = useCallback((blockId: string, el: HTMLTextAreaElement) => setActive({ id: blockId, el }), []);
   const [confirm, confirmDialog] = useConfirm();
   // Autosave is off by default; the choice is remembered in this browser.
   const [autosave, setAutosave] = useState(false);
@@ -477,6 +480,24 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
 
   const checksFailing = checks.filter((c) => !c.ok).length;
 
+  const activeBlock = active ? draft.blocks.find((b) => b.id === active.id) : undefined;
+  const allowedKeys = activeBlock ? ALLOW[activeBlock.type] ?? DEFAULT_FMTS : [];
+  const formats = FMTS.filter((f) => allowedKeys.includes(f.key));
+
+  function applyFormat(before: string, after: string, fallback: string) {
+    if (!active || !activeBlock || !active.el.isConnected) return;
+    const ta = active.el;
+    const s = ta.selectionStart;
+    const en = ta.selectionEnd;
+    const v = ta.value;
+    const sel = v.slice(s, en) || fallback;
+    patchBlock(active.id, { text: v.slice(0, s) + before + sel + after + v.slice(en) });
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(s + before.length, s + before.length + sel.length);
+    });
+  }
+
   function jumpTo(blockId: string) {
     document.getElementById(`blk-${blockId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
     if (window.innerWidth < 1200) setOutlineOpen(false);
@@ -486,6 +507,7 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
     <div className="wr">
       {/* ── Top bar: the only permanent chrome while writing */}
       <header className="wr-bar">
+        <div className="wr-bar-main">
         <div className="wr-bar-group">
           <button type="button" className="wr-icon" title="Back to all articles" aria-label="Back to all articles" onClick={() => router.push("/admin")}>←</button>
           <span className={`status-pill${isPublished ? " live" : ""}`}>{isPublished ? "Live" : "Draft"}</span>
@@ -580,6 +602,31 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
             </>
           )}
         </div>
+        </div>
+        {mode === "edit" ? (
+          <div className="wr-fmt" role="toolbar" aria-label="Text formatting">
+            {formats.length === 0 ? (
+              <span className="fmt-hint">{activeBlock ? "This block has no text formatting" : "Click into a block, select text, then pick a format"}</span>
+            ) : (
+              <>
+                <span className="fmt-hint">Format</span>
+                {formats.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    className="fmt-btn"
+                    title={f.title}
+                    style={{ color: f.color, ...("style" in f ? f.style : {}) }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => applyFormat(f.before, f.after, f.fallback)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+        ) : null}
       </header>
 
       {/* ── Banners */}
@@ -689,6 +736,7 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
                     onSplit={splitBlock}
                     onBackspaceEmpty={backspaceEmpty}
                     onUpload={upload}
+                    onActivate={onActivate}
                   />
                 ))}
               </div>
