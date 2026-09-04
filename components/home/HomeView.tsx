@@ -66,16 +66,22 @@ export function HomeView({ articles }: { articles: ArticleDTO[] }) {
         <div style={{ display: "flex", flexDirection: "column" }}>
           {shown.map((p) => (
             <Link key={p.id} href={`/articles/${p.slug}`} className="post-row">
-              <span className="mono" style={{ color: "var(--ink-3)", letterSpacing: "0.1em" }}>
-                {formatMonthYear(p.publishDate)}
+              <span className="post-thumb" aria-hidden="true">
+                {p.leadPlateUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.leadPlateUrl} alt="" />
+                ) : null}
               </span>
               <span>
                 <span style={{ display: "block", fontFamily: "var(--font-display)", fontSize: "1.45rem", lineHeight: 1.2 }}>
                   {p.title}
                 </span>
                 <span style={{ display: "block", fontSize: "0.95rem", color: "var(--ink-3)", marginTop: 4 }}>{p.dek}</span>
+                <span style={{ display: "block", fontSize: "0.85rem", color: "var(--ink-3)", marginTop: 6 }}>
+                  {formatMonthYear(p.publishDate)}
+                </span>
               </span>
-              <span className="mono-sm" style={{ color: "var(--copper)", whiteSpace: "nowrap" }}>
+              <span className="post-row-meta mono-sm" style={{ color: "var(--copper)", whiteSpace: "nowrap" }}>
                 {p.topic} · {articleStats(p).minutes} min
               </span>
             </Link>

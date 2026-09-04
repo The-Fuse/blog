@@ -27,7 +27,7 @@ export function ArticleView({ article, next = null, chrome = true }: Props) {
   return (
     <>
       {chrome ? <ProgressBar /> : null}
-      <header className="reader-header">
+      <div className="reader-chrome-bar">
         <div className="reader-frame">
           <div className="reader-chrome">
             {chrome ? <Link href="/">← Rohit Yadav</Link> : <span>Rohit Yadav</span>}
@@ -37,6 +37,10 @@ export function ArticleView({ article, next = null, chrome = true }: Props) {
               {chrome ? <ThemeToggle /> : null}
             </div>
           </div>
+        </div>
+      </div>
+      <header className="reader-header">
+        <div className="reader-frame">
           <div className={`hero${article.leadPlateUrl || !chrome ? "" : " solo"}`}>
             <div>
               {article.kicker ? (
