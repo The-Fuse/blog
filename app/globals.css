@@ -3250,3 +3250,10 @@ a.secondary-btn:hover {
 @media (prefers-reduced-motion: reduce) {
   .skeleton-bar { animation: none; }
 }
+
+/* List rows are links for prefetching, but must not look like links */
+a.row-main,
+a.row-main:hover {
+  text-decoration: none;
+  color: inherit;
+}
