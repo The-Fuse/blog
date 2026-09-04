@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import { AdminShell } from "@/components/admin/AdminShell";
-import { getCounts } from "@/lib/articles";
 
 const labels = [
   "Palette",
@@ -115,10 +113,9 @@ export const metadata = { title: "Format kit" };
 export const dynamic = "force-dynamic";
 
 export default async function KitPage() {
-  const counts = await getCounts();
 
   return (
-    <AdminShell counts={counts}>
+    <>
       <div className="mono" style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 20, flexWrap: "wrap", paddingBottom: 10, borderBottom: "1px solid var(--rule)", color: "var(--ink-3)" }}>
         <span>Article kit · v1</span>
         <span>Study-edition format</span>
@@ -441,6 +438,6 @@ export default async function KitPage() {
           ))}
         </ol>
       </Spec>
-    </AdminShell>
+    </>
   );
 }

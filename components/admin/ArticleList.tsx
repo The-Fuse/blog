@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatShortDate } from "@/lib/format";
 import type { ArticleSummary } from "@/lib/types";
-import { AdminShell } from "./AdminShell";
 import { useConfirm } from "./ConfirmDialog";
 
 type View = "all" | "published" | "drafts";
@@ -47,18 +46,11 @@ function RowMenu({ article, onEdit, onToggle, onDelete }: { article: ArticleSumm
   );
 }
 
-export function ArticleList({ articles, initialView = "all" }: { articles: ArticleSummary[]; initialView?: View }) {
+export function ArticleList({ articles, view = "all" }: { articles: ArticleSummary[]; view?: View }) {
   const router = useRouter();
-  const [view, setView] = useState<View>(initialView);
   const [query, setQuery] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirm, confirmDialog] = useConfirm();
-
-  const counts = {
-    all: articles.length,
-    published: articles.filter((a) => a.status === "published").length,
-    drafts: articles.filter((a) => a.status === "draft").length,
-  };
 
   const rows = useMemo(() => {
     let list = articles;
@@ -110,7 +102,7 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
   const viewLabel = view === "all" ? "All articles" : view === "published" ? "Published" : "Drafts";
 
   return (
-    <AdminShell counts={counts} view={view} onView={(v) => setView(v as View)}>
+    <>
       <div className="list-head">
         <div className="list-title">
           <h1>{viewLabel}</h1>
@@ -161,6 +153,6 @@ export function ArticleList({ articles, initialView = "all" }: { articles: Artic
         </p>
       ) : null}
       {confirmDialog}
-    </AdminShell>
+    </>
   );
 }

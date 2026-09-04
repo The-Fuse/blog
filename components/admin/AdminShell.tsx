@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ThemeToggle } from "../ThemeToggle";
 import { useConfirm } from "./ConfirmDialog";
@@ -13,18 +13,10 @@ type Counts = { all: number; published: number; drafts: number };
  * Desktop: a fixed sidebar. Phones: a compact header with a tab row, a ⋯ menu and a floating "+" button.
  * The article writer has its own focused layout and does not use this.
  */
-export function AdminShell({
-  counts,
-  view,
-  onView,
-  children,
-}: {
-  counts?: Counts;
-  view?: string;
-  onView?: (v: string) => void;
-  children: ReactNode;
-}) {
+export function AdminShell({ counts, children }: { counts?: Counts; children: ReactNode }) {
   const pathname = usePathname();
+  const search = useSearchParams();
+  const view = search.get("view") || "all";
   const router = useRouter();
   const [confirm, confirmDialog] = useConfirm();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,7 +30,7 @@ export function AdminShell({
     { key: "site", label: "About & site", count: undefined, href: "/admin/site" },
     { key: "kit", label: "Style guide", count: undefined, href: "/admin/kit" },
   ];
-  const isOn = (key: string) => (onKit ? key === "kit" : onSite ? key === "site" : (view || "all") === key);
+  const isOn = (key: string) => (onKit ? key === "kit" : onSite ? key === "site" : view === key);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -69,12 +61,6 @@ export function AdminShell({
       key={n.key}
       href={n.href}
       className={`admin-nav-btn${isOn(n.key) ? " on" : ""}`}
-      onClick={(e) => {
-        if (["all", "published", "drafts"].includes(n.key) && onView && pathname === "/admin") {
-          e.preventDefault();
-          onView(n.key);
-        }
-      }}
     >
       <span>{n.label}</span>
       {n.count !== undefined ? <span className="mono-sm admin-nav-count">{n.count}</span> : null}
