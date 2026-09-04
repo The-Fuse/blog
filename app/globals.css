@@ -3445,3 +3445,55 @@ html:has(.wr) {
     margin-left: 0;
   }
 }
+
+/* ══ One layout for block controls everywhere: a single row above the block ══
+   [Type ▾] ................................ [⤢] [↑] [↓] [✕]
+   Same on desktop, phones, tables and expanded blocks. The row always takes its space,
+   so focusing never shifts anything; on pointer devices it fades in on hover or focus. */
+.blk,
+.blk.wide,
+.blk.expanded,
+.blk.expanded.wide {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.blk-tools,
+.blk.wide .blk-tools {
+  order: -1;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  opacity: 1;
+}
+
+.blk-tools .type-select,
+.blk.wide .type-select {
+  width: auto;
+  max-width: 60%;
+}
+
+.blk-actions {
+  flex: none;
+}
+
+@media (hover: hover) {
+  .blk-wrap .blk-tools,
+  .blk-wrap:hover .blk-tools {
+    opacity: 1;
+  }
+  .blk-wrap .blk-tools {
+    opacity: 0.45;
+  }
+  .blk-wrap:hover .blk-tools,
+  .blk-wrap:focus-within .blk-tools {
+    opacity: 1;
+  }
+}
+
+.blk.expanded {
+  padding-right: 0;
+}
