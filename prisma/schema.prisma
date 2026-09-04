@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Article {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  kicker           String   @default("")
+  title            String
+  dek              String   @default("")
+  topic            String
+  status           String   @default("draft")
+  featured         Boolean  @default(false)
+  publishDate      DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  author           String   @default("Rohit Yadav")
+  leadPlateUrl     String?
+  leadPlateCaption String   @default("")
+  blocks           Json     @default("[]")
+}
