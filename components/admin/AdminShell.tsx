@@ -17,7 +17,7 @@ export function AdminShell({
   counts?: Counts;
   view?: string;
   onView?: (v: string) => void;
-  outline?: { text: string; indent: string }[];
+  outline?: { id: string; text: string; indent: string }[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -28,9 +28,11 @@ export function AdminShell({
     { key: "all", label: "All articles", count: counts?.all, href: "/admin" },
     { key: "published", label: "Published", count: counts?.published, href: "/admin?view=published" },
     { key: "drafts", label: "Drafts", count: counts?.drafts, href: "/admin?view=drafts" },
-    { key: "editor", label: "Write new", count: "", href: "/admin/articles/new" },
-    { key: "kit", label: "Format kit", count: "", href: "/admin/kit" },
+    { key: "editor", label: "Write new article", count: "", href: "/admin/articles/new" },
+    { key: "site", label: "About & site", count: "", href: "/admin/site" },
+    { key: "kit", label: "Style guide", count: "", href: "/admin/kit" },
   ];
+  const onSite = pathname.startsWith("/admin/site");
 
   return (
     <div className="admin-shell">
@@ -41,7 +43,7 @@ export function AdminShell({
         </div>
         <nav style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: "0.95rem" }}>
           {items.map((n) => {
-            const on = onKit ? n.key === "kit" : writing ? n.key === "editor" : (view || "all") === n.key;
+            const on = onKit ? n.key === "kit" : onSite ? n.key === "site" : writing ? n.key === "editor" : (view || "all") === n.key;
             return (
               <Link
                 key={n.key}
@@ -63,11 +65,20 @@ export function AdminShell({
         {outline?.length ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <span className="mono-sm" style={{ color: "var(--copper)", marginBottom: 4 }}>Outline</span>
-            {outline.map((o, i) => (
-              <span key={i} style={{ fontSize: "0.82rem", color: "var(--ink-3)", paddingLeft: o.indent, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {o.text}
-              </span>
-            ))}
+            <div className="outline-list">
+              {outline.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  className="outline-item"
+                  style={{ paddingLeft: o.indent }}
+                  title={o.text}
+                  onClick={() => document.getElementById(`blk-${o.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+                >
+                  {o.text}
+                </button>
+              ))}
+            </div>
           </div>
         ) : null}
         <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 10 }} className="mono-sm">

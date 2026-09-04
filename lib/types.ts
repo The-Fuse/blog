@@ -1,5 +1,6 @@
-export const TOPICS = ["Philosophy", "Technical"] as const;
-export type Topic = (typeof TOPICS)[number];
+// Topics are free text. These are only suggestions shown when no articles exist yet.
+export const DEFAULT_TOPICS = ["Philosophy", "Technical"];
+export type Topic = string;
 
 export const STATUSES = ["draft", "published"] as const;
 export type Status = (typeof STATUSES)[number];
@@ -14,8 +15,10 @@ export const BLOCK_TYPES = [
   "warn",
   "exam",
   "steps",
+  "list",
   "plate",
   "code",
+  "table",
   "note",
 ] as const;
 
@@ -59,4 +62,6 @@ export type ArticleInput = {
   leadPlateUrl?: string | null;
   leadPlateCaption?: string;
   blocks?: Block[];
+  /** The updatedAt the editor last saw. If the article has changed since, the save is refused (409). */
+  expectedUpdatedAt?: string;
 };

@@ -1,4 +1,5 @@
-import { extractFootnotes, groupChapters } from "@/lib/blocks";
+import { extractFootnotes, groupChapters, parseList, parseTable } from "@/lib/blocks";
+import { looksLikeCode, tokenizeLines } from "@/lib/highlight";
 import type { Block } from "@/lib/types";
 import { DropLede, InlineMarkup } from "./InlineMarkup";
 
@@ -72,11 +73,84 @@ function Steps({ text }: { text: string }) {
   );
 }
 
+function List({ text }: { text: string }) {
+  const { ordered, items } = parseList(text);
+  if (!items.length) return null;
+  const Tag = ordered ? "ol" : "ul";
+  return (
+    <Tag className="art-list measure">
+      {items.map((item, i) => (
+        <li key={i}>
+          <InlineMarkup text={item} />
+        </li>
+      ))}
+    </Tag>
+  );
+}
+
+function CodeBlock({ text }: { text: string }) {
+  const code = text.replace(/\s+$/, "");
+  if (!looksLikeCode(code)) {
+    // Diagrams and file trees: monospaced, no colouring, no line numbers.
+    return <pre className="code-block code-plain">{code}</pre>;
+  }
+  const lines = tokenizeLines(code);
+  return (
+    <pre className="code-block code-ide">
+      <code>
+        {lines.map((line, i) => (
+          <span key={i} className="code-line">
+            {line.length ? line.map((tok, j) => (tok.type === "plain" ? tok.text : <span key={j} className={`tok-${tok.type}`}>{tok.text}</span>)) : "\n"}
+          </span>
+        ))}
+      </code>
+    </pre>
+  );
+}
+
+function Table({ block }: { block: Block }) {
+  const { header, rows } = parseTable(block.text);
+  if (!header.length) return null;
+  return (
+    <div className="art-table-wrap">
+      <table className="art-table">
+        {block.label ? <caption className="mono-sm">{block.label}</caption> : null}
+        <thead>
+          <tr>
+            {header.map((h, i) => (
+              <th key={i} scope="col">
+                <InlineMarkup text={h} />
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, r) => (
+            <tr key={r}>
+              {header.map((_, c) =>
+                c === 0 ? (
+                  <th key={c} scope="row">
+                    <InlineMarkup text={row[c] ?? ""} />
+                  </th>
+                ) : (
+                  <td key={c}>
+                    <InlineMarkup text={row[c] ?? ""} />
+                  </td>
+                ),
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function BodyBlock({ block, dropCap }: { block: Block; dropCap: boolean }) {
   switch (block.type) {
     case "lede":
       return dropCap ? <DropLede text={block.text} /> : (
-        <p className="measure" style={{ fontSize: "1.12rem", color: "var(--ink-2)", lineHeight: 1.55 }}>
+        <p className="measure lede">
           <InlineMarkup text={block.text} />
         </p>
       );
@@ -134,17 +208,28 @@ function BodyBlock({ block, dropCap }: { block: Block; dropCap: boolean }) {
               {block.label}
             </span>
           ) : null}
-          <p style={{ margin: 0 }}>
-            <InlineMarkup text={block.text} />
-          </p>
+          {block.text.split(/\n{2,}/).map((para, i) => (
+            <p key={i} className="callout-p">
+              {para.split("\n").map((line, j) => (
+                <span key={j}>
+                  {j > 0 ? <br /> : null}
+                  <InlineMarkup text={line} />
+                </span>
+              ))}
+            </p>
+          ))}
         </div>
       );
     case "steps":
       return <Steps text={block.text} />;
+    case "list":
+      return <List text={block.text} />;
     case "plate":
       return <Plate block={block} />;
     case "code":
-      return <pre className="code-block">{block.text}</pre>;
+      return <CodeBlock text={block.text} />;
+    case "table":
+      return <Table block={block} />;
     default:
       return null;
   }
@@ -157,68 +242,39 @@ export function ArticleBody({ blocks }: { blocks: Block[] }) {
   return (
     <>
       {chapters.map((ch) => (
-        <section key={ch.id} id={ch.id} className="chapter">
-          <aside className="marg">
-            {ch.numeral ? (
-              <span style={{ display: "block", fontSize: "2.4rem", lineHeight: 1, color: "var(--warm)", fontStyle: "italic", fontWeight: 300 }}>
-                {ch.numeral}
+        <section key={ch.id} id={ch.id} className={`chapter${ch.title ? "" : " preface"}`}>
+          {ch.title ? (
+            <header className="chapter-head">
+              <span className="chapter-kicker">
+                {ch.numeral ? <span className="chapter-num">{ch.numeral}</span> : null}
+                {ch.tag ? <span className="chapter-tag">{ch.tag}</span> : null}
               </span>
-            ) : null}
-            {ch.tag ? (
-              <span
-                className="mono"
-                style={{ display: "block", color: "var(--ink-3)", margin: "10px 0 24px" }}
-              >
-                {ch.tag}
-              </span>
-            ) : null}
-            {ch.notes.map((note) => (
-              <div
-                key={note.id}
-                style={{
-                  fontSize: "0.82rem",
-                  color: "var(--ink-3)",
-                  lineHeight: 1.5,
-                  borderLeft: "1px solid var(--rule)",
-                  paddingLeft: 12,
-                  marginBottom: 16,
-                }}
-              >
-                {note.label ? (
-                  <b
-                    style={{
-                      display: "block",
-                      fontFamily: "var(--font-article-mono)",
-                      fontSize: 10,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                      color: "var(--ink-2)",
-                      fontWeight: 500,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {note.label}
-                  </b>
-                ) : null}
-                <InlineMarkup text={note.text} />
-              </div>
-            ))}
-          </aside>
-          <div style={{ minWidth: 0 }}>
-            {ch.title ? (
-              <h2 className="measure" style={{ fontSize: "clamp(1.9rem, 3.4vw, 2.6rem)", letterSpacing: "-0.015em", lineHeight: 1.15, marginBottom: "0.6em" }}>
-                {ch.title}
-              </h2>
-            ) : null}
-            {ch.blocks.map((block, i) => (
-              <BodyBlock key={block.id} block={block} dropCap={block.type === "lede" && i === ch.blocks.findIndex((b) => b.type === "lede")} />
-            ))}
-          </div>
+              <h2>{ch.title}</h2>
+            </header>
+          ) : null}
+          {ch.notes.length ? (
+            <aside className="chapter-notes" aria-label="Notes for this chapter">
+              {ch.notes.map((note) => (
+                <div key={note.id} className="chapter-note">
+                  {note.label ? <b>{note.label}</b> : null}
+                  <InlineMarkup text={note.text} />
+                </div>
+              ))}
+            </aside>
+          ) : null}
+          {ch.blocks.map((block, i) => (
+            <BodyBlock
+              key={block.id}
+              block={block}
+              // Only the article's own opening gets the drop cap; chapter openings are just set larger.
+              dropCap={!ch.title && block.type === "lede" && i === ch.blocks.findIndex((b) => b.type === "lede")}
+            />
+          ))}
         </section>
       ))}
 
       {extracted.notes.length > 0 ? (
-        <section id="notes" style={{ padding: "clamp(32px, 4vw, 48px) 0", maxWidth: "68ch", fontSize: "0.86rem", color: "var(--ink-2)", lineHeight: 1.55 }}>
+        <section id="notes" className="notes" style={{ padding: "clamp(32px, 4vw, 48px) 0", fontSize: "0.86rem", color: "var(--ink-2)", lineHeight: 1.55 }}>
           <span className="mono-sm" style={{ display: "block", color: "var(--warm)", marginBottom: 12 }}>
             Notes
           </span>

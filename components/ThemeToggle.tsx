@@ -22,8 +22,14 @@ export function ThemeToggle({ className = "theme-btn chrome" }: { className?: st
   }
 
   return (
-    <button type="button" className={className} onClick={toggle}>
-      {theme === "dark" ? "◐ Light" : "◑ Dark"}
+    <button
+      type="button"
+      className={className}
+      onClick={toggle}
+      title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {theme === "dark" ? "☀" : "☾"}
     </button>
   );
 }

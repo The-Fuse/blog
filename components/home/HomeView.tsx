@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { articleStats, formatMonthYear } from "@/lib/format";
-import type { ArticleDTO, Topic } from "@/lib/types";
-
-const FILTERS = ["All", "Philosophy", "Technical"] as const;
+import type { ArticleDTO } from "@/lib/types";
 
 export function HomeView({ articles }: { articles: ArticleDTO[] }) {
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("All");
+  const [filter, setFilter] = useState("All");
   const featured = articles.find((a) => a.featured) ?? articles[0] ?? null;
+  const filters = useMemo(() => {
+    const topics = [...new Set(articles.map((a) => a.topic).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    return ["All", ...topics];
+  }, [articles]);
   const shown = useMemo(
-    () => (filter === "All" ? articles : articles.filter((a) => a.topic === (filter as Topic))),
+    () => (filter === "All" ? articles : articles.filter((a) => a.topic === filter)),
     [articles, filter],
   );
   const countLabel = `${shown.length} ${shown.length === 1 ? "article" : "articles"}`;
@@ -49,7 +51,7 @@ export function HomeView({ articles }: { articles: ArticleDTO[] }) {
             {countLabel}
           </span>
           <div className="filters mono">
-            {FILTERS.map((name) => (
+            {filters.map((name) => (
               <button
                 key={name}
                 type="button"

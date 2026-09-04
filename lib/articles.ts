@@ -1,7 +1,7 @@
 import type { Article } from "../generated/prisma/client";
 import { prisma } from "./db";
 import { slugify } from "./slug";
-import type { ArticleDTO, ArticleInput, Block, Status, Topic } from "./types";
+import { DEFAULT_TOPICS, type ArticleDTO, type ArticleInput, type Block, type Status } from "./types";
 
 export function toDTO(article: Article): ArticleDTO {
   return {
@@ -10,7 +10,7 @@ export function toDTO(article: Article): ArticleDTO {
     kicker: article.kicker,
     title: article.title,
     dek: article.dek,
-    topic: article.topic as Topic,
+    topic: article.topic,
     status: article.status as Status,
     featured: article.featured,
     publishDate: article.publishDate.toISOString(),
@@ -55,6 +55,16 @@ export async function listAll() {
   return articles.map(toDTO);
 }
 
+/** Every topic in use, plus the defaults, sorted. Used for the topic suggestions in the writer. */
+export async function listTopics() {
+  const rows = await prisma.article.findMany({
+    select: { topic: true },
+    distinct: ["topic"],
+  });
+  const set = new Set([...rows.map((r) => r.topic.trim()).filter(Boolean), ...DEFAULT_TOPICS]);
+  return [...set].sort((a, b) => a.localeCompare(b));
+}
+
 export async function getById(id: string) {
   const article = await prisma.article.findUnique({ where: { id } });
   return article ? toDTO(article) : null;
@@ -69,7 +79,7 @@ export async function createArticle(input: ArticleInput) {
       title,
       kicker: input.kicker ?? "",
       dek: input.dek ?? "",
-      topic: input.topic ?? "Philosophy",
+      topic: input.topic?.trim() || "General",
       status: input.status ?? "draft",
       featured: input.featured ?? false,
       publishDate: input.publishDate ? new Date(input.publishDate) : new Date(),
@@ -82,9 +92,24 @@ export async function createArticle(input: ArticleInput) {
   return toDTO(article);
 }
 
+export async function deleteArticle(id: string) {
+  const existing = await prisma.article.findUnique({ where: { id } });
+  if (!existing) return null;
+  await prisma.article.delete({ where: { id } });
+  return toDTO(existing);
+}
+
+export const CONFLICT = Symbol("conflict");
+
 export async function updateArticle(id: string, input: ArticleInput) {
   const existing = await prisma.article.findUnique({ where: { id } });
   if (!existing) return null;
+
+  // Refuse to overwrite a newer save from another tab or session. The editor sends the updatedAt it
+  // loaded; if the row has moved on, the writer shows a reload prompt instead of clobbering the change.
+  if (input.expectedUpdatedAt && input.expectedUpdatedAt !== existing.updatedAt.toISOString()) {
+    return CONFLICT;
+  }
 
   const title = input.title !== undefined ? input.title.trim() || "Untitled" : existing.title;
   const slug =
@@ -104,7 +129,7 @@ export async function updateArticle(id: string, input: ArticleInput) {
       title,
       kicker: input.kicker ?? existing.kicker,
       dek: input.dek ?? existing.dek,
-      topic: input.topic ?? existing.topic,
+      topic: input.topic?.trim() || existing.topic,
       status: input.status ?? existing.status,
       featured: input.featured ?? existing.featured,
       publishDate: input.publishDate ? new Date(input.publishDate) : existing.publishDate,

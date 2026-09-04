@@ -1,5 +1,5 @@
 const TOKEN =
-  /(\*\*[^*]+\*\*|\*[^*]+\*|\{idea:[^}]+\}|\{spirit:[^}]+\}|\{matter:[^}]+\}|\[[^\]]+\]\([^)]+\)|\[\[fn:\d+\]\]|§[A-Za-z]+\s*\d+)/g;
+  /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\{idea:[^}]+\}|\{spirit:[^}]+\}|\{matter:[^}]+\}|\[[^\]]+\]\([^)]+\)|\[\[fn:\d+\]\]|§[A-Za-z]+\s*\d+)/g;
 
 export function InlineMarkup({ text }: { text: string }) {
   if (!text) return null;
@@ -8,6 +8,9 @@ export function InlineMarkup({ text }: { text: string }) {
     <>
       {parts.map((part, i) => {
         if (!part) return null;
+        if (part.length > 2 && part.startsWith("`") && part.endsWith("`")) {
+          return <code key={i} className="inline-code">{part.slice(1, -1)}</code>;
+        }
         if (part.startsWith("**") && part.endsWith("**")) {
           return <strong key={i} style={{ fontWeight: 500, color: "var(--ink)" }}>{part.slice(2, -2)}</strong>;
         }

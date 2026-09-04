@@ -12,7 +12,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/articles") || pathname.startsWith("/api/upload")) {
+  if (pathname.startsWith("/admin") || pathname.startsWith("/api/articles") || pathname.startsWith("/api/upload") || pathname.startsWith("/api/site")) {
     if (ok) return NextResponse.next();
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -26,5 +26,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/articles/:path*", "/api/articles", "/api/upload"],
+  matcher: ["/admin/:path*", "/api/articles/:path*", "/api/articles", "/api/upload", "/api/site"],
 };

@@ -24,3 +24,13 @@ model Article {
   leadPlateCaption String   @default("")
   blocks           Json     @default("[]")
 }
+
+/// Single-row site settings edited from the admin (About section, contact email).
+model Site {
+  id           Int      @id @default(1)
+  aboutHeading String   @default("About")
+  aboutText    String   @default("Long-form study editions of philosophers and of technical ideas — arguments set out as arguments, with every diagram drawn in one visual grammar.")
+  aboutNote    String   @default("New edition roughly every month.")
+  contactEmail String   @default("")
+  updatedAt    DateTime @updatedAt
+}

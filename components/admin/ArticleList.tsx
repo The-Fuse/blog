@@ -35,6 +35,16 @@ export function ArticleList({ articles }: { articles: ArticleDTO[] }) {
     router.refresh();
   }
 
+  async function remove(article: ArticleDTO) {
+    if (!window.confirm(`Delete "${article.title}"? This cannot be undone.`)) return;
+    const res = await fetch(`/api/articles/${article.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      window.alert("Could not delete the article. Please try again.");
+      return;
+    }
+    router.refresh();
+  }
+
   return (
     <AdminShell counts={counts} view={view} onView={setView}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", gap: 20, flexWrap: "wrap", paddingBottom: 20, borderBottom: "1px solid var(--rule)" }}>
@@ -80,6 +90,7 @@ export function ArticleList({ articles }: { articles: ArticleDTO[] }) {
             <div style={{ display: "flex", gap: 12, justifyContent: "end" }} className="mono-sm">
               <button type="button" className="ghost" onClick={() => router.push(`/admin/articles/${r.id}`)}>Edit</button>
               <button type="button" className="ghost" onClick={() => toggle(r)}>{published ? "Unpublish" : "Publish"}</button>
+              <button type="button" className="ghost danger" onClick={() => remove(r)}>Delete</button>
             </div>
           </div>
         );
