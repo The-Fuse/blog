@@ -3508,3 +3508,16 @@ html:has(.wr) {
     margin-left: calc((100% - var(--exp)) / 2);
   }
 }
+
+/* ══ Desktop canvas is wide for every block; the per-type stretch is no longer needed ══ */
+@media (min-width: 901px) {
+  .wr-doc {
+    max-width: 1100px;
+  }
+  .blk.blk-t-code,
+  .blk.blk-t-table,
+  .blk.blk-t-plate {
+    width: auto;
+    margin-left: 0;
+  }
+}
