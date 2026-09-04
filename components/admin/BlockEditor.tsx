@@ -104,8 +104,6 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const [focused, setFocused] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
-  // View-only: stretch this block across the canvas for wide code, tables or images. Not saved.
-  const [expanded, setExpanded] = useState(false);
   const [slashIndex, setSlashIndex] = useState(0);
 
   const isText = TEXT_TYPES.includes(block.type);
@@ -195,7 +193,7 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
 
   return (
     <div className={`blk-wrap${focused ? " focused" : ""}`}>
-      <div id={`blk-${block.id}`} className={`blk${wide ? " wide" : ""}${expanded ? " expanded" : ""}`} style={{ borderLeftColor: meta.edge }}>
+      <div id={`blk-${block.id}`} className={`blk blk-t-${block.type}${wide ? " wide" : ""}`} style={{ borderLeftColor: meta.edge }}>
         <div style={{ minWidth: 0, position: "relative" }}>
           {meta.labelHint ? (
             <div className="blk-tag-row">
@@ -314,16 +312,6 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
             ))}
           </select>
           <div className="blk-actions">
-            <button
-              type="button"
-              className={`blk-btn${expanded ? " on" : ""}`}
-              title={expanded ? "Back to normal width" : "Expand to full width for a better view"}
-              aria-label={expanded ? "Back to normal width" : "Expand block to full width"}
-              aria-pressed={expanded}
-              onClick={() => setExpanded((v) => !v)}
-            >
-              {expanded ? "⤡" : "⤢"}
-            </button>
             <button type="button" className="blk-btn" title="Move up" aria-label="Move block up" disabled={index === 0} onClick={() => onMove(block.id, -1)}>↑</button>
             <button type="button" className="blk-btn" title="Move down" aria-label="Move block down" disabled={index === count - 1} onClick={() => onMove(block.id, 1)}>↓</button>
             <button type="button" className="blk-btn danger" title="Remove this block (you can undo)" aria-label="Remove block" onClick={() => onRemove(block.id)}>✕</button>

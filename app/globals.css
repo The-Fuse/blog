@@ -3497,3 +3497,14 @@ html:has(.wr) {
 .blk.expanded {
   padding-right: 0;
 }
+
+/* ══ Wide-content blocks (code, tables, images) span the canvas on desktop by default ══ */
+@media (min-width: 901px) {
+  .blk.blk-t-code,
+  .blk.blk-t-table,
+  .blk.blk-t-plate {
+    --exp: min(1100px, calc(100cqw - 2 * var(--wr-pad)));
+    width: var(--exp);
+    margin-left: calc((100% - var(--exp)) / 2);
+  }
+}
