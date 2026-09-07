@@ -841,7 +841,7 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
               >
                 {draft.leadPlateUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={draft.leadPlateUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={draft.leadPlateUrl} alt="" />
                 ) : (
                   <span className="mono-sm">Click or drop an image<br />Shown at the top of the article and on the home page</span>
                 )}

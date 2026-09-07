@@ -3521,3 +3521,27 @@ html:has(.wr) {
     margin-left: 0;
   }
 }
+
+/* Uploaded images are never cropped. A box that holds a real image takes the image's own
+   proportions; only the empty placeholders keep a fixed ratio so the layout has a shape. */
+.plate-ph:has(img),
+.plate-wide:has(img),
+.drop-zone:has(img) {
+  aspect-ratio: auto;
+  padding: 0;
+  display: block;
+  line-height: 0;
+}
+
+.plate-ph img,
+.plate-wide img,
+.drop-zone img {
+  width: 100%;
+  height: auto;
+  object-fit: unset;
+  display: block;
+}
+
+.post-thumb img {
+  object-fit: contain;
+}

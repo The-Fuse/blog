@@ -225,7 +225,7 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
               >
                 {block.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={block.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={block.imageUrl} alt="" />
                 ) : (
                   <span className="mono-sm">Click or drop an image here<br />PNG, JPG, WebP, GIF or SVG · under 5MB</span>
                 )}
