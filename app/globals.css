@@ -3843,3 +3843,14 @@ html:not([data-theme="light"]) .img-light {
   color: var(--warm);
   margin-bottom: 4px;
 }
+
+/* Inside the writer's preview the Light/Dark switch decides which image version shows, not the admin theme. */
+.preview-frame.reader-light .img-light,
+.preview-frame:not(.reader-light) .img-dark {
+  display: block !important;
+}
+
+.preview-frame.reader-light .img-dark,
+.preview-frame:not(.reader-light) .img-light {
+  display: none !important;
+}

@@ -535,7 +535,13 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
             className={`wr-tool${mode === "preview" ? " on" : ""}`}
             title={mode === "preview" ? "Back to editing" : "Preview as a reader"}
             aria-pressed={mode === "preview"}
-            onClick={() => setMode((m) => (m === "preview" ? "edit" : "preview"))}
+            onClick={() => {
+              if (mode !== "preview") {
+                // Preview opens in whichever theme the admin is using right now; the Light/Dark switch can still override it.
+                setPreviewTheme(document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+              }
+              setMode((m) => (m === "preview" ? "edit" : "preview"));
+            }}
           >
             <span aria-hidden>◉</span>
             <span className="wr-hide-sm">{mode === "preview" ? "Edit" : "Preview"}</span>
