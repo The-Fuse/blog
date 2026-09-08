@@ -566,7 +566,9 @@ textarea:focus-visible {
 .preview-frame {
   border: 1px solid var(--rule);
   border-radius: 3px;
-  overflow: hidden;
+  /* clip, not hidden: hidden makes the frame a scroll container and the contents column can no
+     longer stick to the page like it does on the real article. */
+  overflow: clip;
   background: var(--ground);
   color: var(--ink);
 }
@@ -575,8 +577,15 @@ textarea:focus-visible {
   padding-top: 24px;
 }
 
+/* The writer's own bar (about 67px in preview) stays on top; the article's bar scrolls away with
+   the page and the contents column sticks just beneath the writer bar, as it does on the real page. */
+.preview-frame .reader-chrome-bar {
+  position: static;
+}
+
 .preview-frame .toc-side {
-  top: 16px;
+  top: 84px;
+  max-height: calc(100vh - 100px);
 }
 
 .topic-new {
