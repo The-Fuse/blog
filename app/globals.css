@@ -1198,10 +1198,11 @@ textarea:focus-visible {
 .pill {
   display: inline-block;
   font-family: var(--font-article-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 2px 7px;
+  /* Terms keep the author's casing; sized relative to the surrounding text so they read inline. */
+  font-size: 0.8em;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  padding: 1px 7px;
   border-radius: 2px;
   vertical-align: middle;
 }
