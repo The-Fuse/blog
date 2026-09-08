@@ -6,7 +6,7 @@ import { DropLede, InlineMarkup } from "./InlineMarkup";
 
 function Plate({ block }: { block: Block }) {
   return (
-    <figure style={{ margin: "2.4em 0", padding: 0 }}>
+    <figure className="plate-fig">
       <div className="plate-wide">
         {block.imageUrl ? (
           <ThemedImage src={block.imageUrl} darkSrc={block.imageDarkUrl} alt={block.label || "Plate"} loading="lazy" decoding="async" />
@@ -16,24 +16,13 @@ function Plate({ block }: { block: Block }) {
           </span>
         )}
       </div>
-      <figcaption
-        style={{
-          marginTop: 12,
-          paddingTop: 10,
-          borderTop: "1px solid var(--rule-2)",
-          fontSize: "0.86rem",
-          color: "var(--ink-2)",
-          lineHeight: 1.5,
-          maxWidth: "84ch",
-        }}
-      >
-        {block.label ? (
-          <span className="mono-sm" style={{ display: "block", color: "var(--warm)", marginBottom: 4 }}>
-            {block.label}
-          </span>
-        ) : null}
-        <InlineMarkup text={block.text} />
-      </figcaption>
+      {/* Only when there is something to say: an empty caption would add a rule and a gap under the image. */}
+      {block.label || block.text.trim() ? (
+        <figcaption className="plate-cap">
+          {block.label ? <span className="mono-sm plate-cap-label">{block.label}</span> : null}
+          {block.text.trim() ? <InlineMarkup text={block.text} /> : null}
+        </figcaption>
+      ) : null}
     </figure>
   );
 }

@@ -3815,3 +3815,31 @@ html:not([data-theme="light"]) .img-light {
   padding-right: 4px;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 }
+
+/* ══ Plates in the article body ══
+   One margin for the whole figure, matching the other blocks; the frame itself carries none, so an
+   image with a caption gets no extra gap between picture and caption. */
+.plate-fig {
+  margin: 2em 0;
+  padding: 0;
+}
+
+.plate-fig .plate-wide {
+  margin: 0;
+}
+
+.plate-cap {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-2);
+  font-size: 0.86rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+  max-width: 84ch;
+}
+
+.plate-cap-label {
+  display: block;
+  color: var(--warm);
+  margin-bottom: 4px;
+}
