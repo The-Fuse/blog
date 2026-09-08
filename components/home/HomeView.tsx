@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ThemedImage } from "@/components/ThemedImage";
 import { formatMonthYear } from "@/lib/format";
 import type { ArticleSummary } from "@/lib/types";
 
@@ -36,8 +37,7 @@ export function HomeView({ articles }: { articles: ArticleSummary[] }) {
           </div>
           <div className="plate-ph">
             {featured.leadPlateUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={featured.leadPlateUrl} alt="" fetchPriority="high" decoding="async" />
+              <ThemedImage src={featured.leadPlateUrl} darkSrc={featured.leadPlateDarkUrl} alt="" fetchPriority="high" decoding="async" />
             ) : (
               <div className="plate-hatch mono-sm">lead plate</div>
             )}
@@ -68,8 +68,7 @@ export function HomeView({ articles }: { articles: ArticleSummary[] }) {
             <Link key={p.id} href={`/articles/${p.slug}`} className="post-row">
               <span className="post-thumb" aria-hidden="true">
                 {p.leadPlateUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.leadPlateUrl} alt="" loading="lazy" decoding="async" />
+                  <ThemedImage src={p.leadPlateUrl} darkSrc={p.leadPlateDarkUrl} alt="" loading="lazy" decoding="async" />
                 ) : null}
               </span>
               <span>

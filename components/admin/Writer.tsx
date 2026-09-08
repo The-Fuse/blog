@@ -12,6 +12,7 @@ import { slugify } from "@/lib/slug";
 import type { ArticleDTO, Block, BlockType, Status } from "@/lib/types";
 import { ALLOW, BlockEditor, DEFAULT_FMTS, FMTS, type FocusRequest } from "./BlockEditor";
 import { useConfirm } from "./ConfirmDialog";
+import { ImageSlots } from "./ImageSlots";
 import { InsertMenu } from "./InsertMenu";
 
 type Draft = {
@@ -22,6 +23,7 @@ type Draft = {
   publishDate: string;
   featured: boolean;
   leadPlateUrl: string | null;
+  leadPlateDarkUrl: string | null;
   leadPlateCaption: string;
   blocks: Block[];
 };
@@ -35,6 +37,7 @@ function fromArticle(a?: ArticleDTO | null): Draft {
     publishDate: a ? toDateInput(a.publishDate) : toDateInput(new Date().toISOString()),
     featured: a?.featured ?? false,
     leadPlateUrl: a?.leadPlateUrl ?? null,
+    leadPlateDarkUrl: a?.leadPlateDarkUrl ?? null,
     leadPlateCaption: a?.leadPlateCaption ?? "",
     // A fixed id for the very first block of a new article, so server and client render the same DOM id.
     blocks: a?.blocks?.length ? a.blocks : [{ ...newBlock("lede"), id: "opening" }],
@@ -73,6 +76,7 @@ function draftToArticle(draft: Draft, id: string | null, author: string, slug: s
     updatedAt: new Date().toISOString(),
     author,
     leadPlateUrl: draft.leadPlateUrl,
+    leadPlateDarkUrl: draft.leadPlateDarkUrl,
     leadPlateCaption: draft.leadPlateCaption,
     blocks: draft.blocks,
   };
@@ -828,40 +832,19 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
 
             <section className="wr-sec">
               <span className="field-label">Cover image (optional)</span>
-              <label
-                className="drop-zone"
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={async (e) => {
-                  e.preventDefault();
-                  const file = e.dataTransfer.files[0];
-                  if (!file) return;
-                  const url = await upload(file);
-                  if (url) patch({ leadPlateUrl: url });
+              <ImageSlots
+                light={draft.leadPlateUrl}
+                dark={draft.leadPlateDarkUrl}
+                onUpload={upload}
+                hint={"Click or drop an image\nShown at the top of the article and on the home page"}
+                onChange={(next) => {
+                  const p: Partial<Draft> = {};
+                  if (next.light !== undefined) p.leadPlateUrl = next.light;
+                  if (next.dark !== undefined) p.leadPlateDarkUrl = next.dark;
+                  patch(p);
                 }}
-              >
-                {draft.leadPlateUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={draft.leadPlateUrl} alt="" />
-                ) : (
-                  <span className="mono-sm">Click or drop an image<br />Shown at the top of the article and on the home page</span>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const url = await upload(file);
-                    if (url) patch({ leadPlateUrl: url });
-                  }}
-                />
-              </label>
-              <input value={draft.leadPlateUrl ?? ""} onChange={(e) => patch({ leadPlateUrl: e.target.value.trim() || null })} placeholder="…or paste an image address" aria-label="Cover image address" />
+              />
               <input value={draft.leadPlateCaption} onChange={(e) => patch({ leadPlateCaption: e.target.value })} placeholder="Caption (optional)" />
-              {draft.leadPlateUrl ? (
-                <button type="button" className="link-btn" style={{ alignSelf: "flex-start", fontSize: "0.85rem" }} onClick={() => patch({ leadPlateUrl: null })}>Remove image</button>
-              ) : null}
             </section>
 
             <section className="wr-sec">

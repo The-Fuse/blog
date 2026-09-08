@@ -3,6 +3,7 @@
 import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
 import { BLOCK_META, PALETTE } from "@/lib/blocks";
 import type { Block, BlockType } from "@/lib/types";
+import { ImageSlots } from "./ImageSlots";
 import { filterPalette, InsertMenu } from "./InsertMenu";
 import { TableEditor } from "./TableEditor";
 
@@ -211,45 +212,21 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
           ) : null}
 
           {meta.plate ? (
-            <>
-              <label
-                className="drop-zone wide"
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={async (e) => {
-                  e.preventDefault();
-                  const file = e.dataTransfer.files[0];
-                  if (!file) return;
-                  const url = await onUpload(file);
-                  if (url) onChange(block.id, { imageUrl: url });
+            <div className="blk-plate-slots">
+              <ImageSlots
+                wide
+                light={block.imageUrl}
+                dark={block.imageDarkUrl}
+                onUpload={onUpload}
+                hint={"Click or drop an image here\nPNG, JPG, WebP, GIF or SVG · under 5MB"}
+                onChange={(next) => {
+                  const p: Partial<Block> = {};
+                  if (next.light !== undefined) p.imageUrl = next.light || undefined;
+                  if (next.dark !== undefined) p.imageDarkUrl = next.dark || undefined;
+                  onChange(block.id, p);
                 }}
-              >
-                {block.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={block.imageUrl} alt="" />
-                ) : (
-                  <span className="mono-sm">Click or drop an image here<br />PNG, JPG, WebP, GIF or SVG · under 5MB</span>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const url = await onUpload(file);
-                    if (url) onChange(block.id, { imageUrl: url });
-                  }}
-                />
-              </label>
-              <input
-                value={block.imageUrl || ""}
-                onChange={(e) => onChange(block.id, { imageUrl: e.target.value.trim() || undefined })}
-                placeholder="…or paste an image address, e.g. /uploads/figure-1.svg"
-                aria-label="Image address"
-                className="mono-sm blk-label"
-                style={{ color: "var(--ink-3)", marginBottom: 8 }}
               />
-            </>
+            </div>
           ) : null}
 
 

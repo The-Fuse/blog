@@ -23,14 +23,16 @@ export function AdminShell({ counts, children }: { counts?: Counts; children: Re
   const menuRef = useRef<HTMLDivElement | null>(null);
   const onKit = pathname.startsWith("/admin/kit");
   const onSite = pathname.startsWith("/admin/site");
+  const onMedia = pathname.startsWith("/admin/media");
   const items = [
     { key: "all", label: "All articles", count: counts?.all, href: "/admin" },
     { key: "published", label: "Published", count: counts?.published, href: "/admin?view=published" },
     { key: "drafts", label: "Drafts", count: counts?.drafts, href: "/admin?view=drafts" },
+    { key: "media", label: "Images", count: undefined, href: "/admin/media" },
     { key: "site", label: "About & site", count: undefined, href: "/admin/site" },
     { key: "kit", label: "Style guide", count: undefined, href: "/admin/kit" },
   ];
-  const isOn = (key: string) => (onKit ? key === "kit" : onSite ? key === "site" : view === key);
+  const isOn = (key: string) => (onKit ? key === "kit" : onSite ? key === "site" : onMedia ? key === "media" : view === key);
 
   useEffect(() => {
     if (!menuOpen) return;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArticleBody } from "@/components/article/BlockRenderer";
 import { ProgressBar } from "@/components/article/ProgressBar";
 import { TocNav } from "@/components/article/TocNav";
+import { ThemedImage } from "@/components/ThemedImage";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { groupChapters } from "@/lib/blocks";
 import { articleStats, formatShortDate } from "@/lib/format";
@@ -86,8 +87,7 @@ export function ArticleView({ article, next = null, chrome = true }: Props) {
               <figure style={{ margin: 0 }}>
                 <div className="plate-ph">
                   {article.leadPlateUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={article.leadPlateUrl} alt="" fetchPriority="high" decoding="async" />
+                    <ThemedImage src={article.leadPlateUrl} darkSrc={article.leadPlateDarkUrl} alt="" fetchPriority="high" decoding="async" />
                   ) : (
                     <div className="plate-hatch mono-sm" style={{ fontFamily: "var(--font-article-mono)" }}>
                       cover image (optional)

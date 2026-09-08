@@ -31,6 +31,20 @@ export type Block = {
   label?: string;
   cite?: string;
   imageUrl?: string;
+  /** Optional version of the image for dark mode. Falls back to imageUrl. */
+  imageDarkUrl?: string;
+};
+
+/** One uploaded image in the media library. */
+export type MediaDTO = {
+  id: string;
+  url: string;
+  name: string;
+  contentType: string;
+  size: number;
+  createdAt: string;
+  /** Articles that use this image (cover or a plate block). */
+  usedIn: { id: string; title: string }[];
 };
 
 export type ArticleDTO = {
@@ -46,6 +60,7 @@ export type ArticleDTO = {
   updatedAt: string;
   author: string;
   leadPlateUrl: string | null;
+  leadPlateDarkUrl: string | null;
   leadPlateCaption: string;
   blocks: Block[];
 };
@@ -63,6 +78,7 @@ export type ArticleInput = {
   publishDate?: string;
   author?: string;
   leadPlateUrl?: string | null;
+  leadPlateDarkUrl?: string | null;
   leadPlateCaption?: string;
   blocks?: Block[];
   /** The updatedAt the editor last saw. If the article has changed since, the save is refused (409). */

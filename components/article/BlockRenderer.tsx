@@ -1,6 +1,7 @@
 import { extractFootnotes, groupChapters, parseList, parseTable } from "@/lib/blocks";
 import { looksLikeCode, tokenizeLines } from "@/lib/highlight";
 import type { Block } from "@/lib/types";
+import { ThemedImage } from "../ThemedImage";
 import { DropLede, InlineMarkup } from "./InlineMarkup";
 
 function Plate({ block }: { block: Block }) {
@@ -8,8 +9,7 @@ function Plate({ block }: { block: Block }) {
     <figure style={{ margin: "2.4em 0", padding: 0 }}>
       <div className="plate-wide">
         {block.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={block.imageUrl} alt={block.label || "Plate"} loading="lazy" decoding="async" />
+          <ThemedImage src={block.imageUrl} darkSrc={block.imageDarkUrl} alt={block.label || "Plate"} loading="lazy" decoding="async" />
         ) : (
           <span className="mono-sm" style={{ color: "var(--ink-3)", padding: 24, textAlign: "center" }}>
             wide plate · full column width

@@ -21,6 +21,8 @@ model Article {
   updatedAt        DateTime @updatedAt
   author           String   @default("Rohit Yadav")
   leadPlateUrl     String?
+  /// Optional cover shown in dark mode. When empty the light image is used in both themes.
+  leadPlateDarkUrl String?
   leadPlateCaption String   @default("")
   blocks           Json     @default("[]")
   /// Words in title, subtitle and body, kept up to date on save so lists never need the body.
@@ -28,6 +30,20 @@ model Article {
 
   @@index([status, publishDate])
   @@index([updatedAt])
+}
+
+/// One row per uploaded image, so the admin can browse, reuse and delete uploads.
+/// `key` is the Vercel Blob pathname or the file name under public/uploads.
+model Media {
+  id          String   @id @default(cuid())
+  url         String   @unique
+  key         String
+  name        String
+  contentType String   @default("")
+  size        Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 /// Single-row site settings edited from the admin (About section, contact email).

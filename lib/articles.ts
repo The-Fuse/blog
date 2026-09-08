@@ -18,6 +18,7 @@ export function toDTO(article: Article): ArticleDTO {
     updatedAt: article.updatedAt.toISOString(),
     author: article.author,
     leadPlateUrl: article.leadPlateUrl,
+    leadPlateDarkUrl: article.leadPlateDarkUrl,
     leadPlateCaption: article.leadPlateCaption,
     blocks: (article.blocks as Block[]) ?? [],
   };
@@ -26,7 +27,7 @@ export function toDTO(article: Article): ArticleDTO {
 /** Column list for summaries: everything except the (large) blocks JSON. */
 const SUMMARY_SELECT = {
   id: true, slug: true, kicker: true, title: true, dek: true, topic: true, status: true, featured: true,
-  publishDate: true, updatedAt: true, author: true, leadPlateUrl: true, leadPlateCaption: true, wordCount: true,
+  publishDate: true, updatedAt: true, author: true, leadPlateUrl: true, leadPlateDarkUrl: true, leadPlateCaption: true, wordCount: true,
 } as const;
 
 type SummaryRow = Omit<Article, "blocks" | "createdAt">;
@@ -45,6 +46,7 @@ export function toSummary(a: SummaryRow): ArticleSummary {
     updatedAt: a.updatedAt.toISOString(),
     author: a.author,
     leadPlateUrl: a.leadPlateUrl,
+    leadPlateDarkUrl: a.leadPlateDarkUrl,
     leadPlateCaption: a.leadPlateCaption,
     words: a.wordCount,
     minutes: readMinutes(a.wordCount),
@@ -131,6 +133,7 @@ export async function createArticle(input: ArticleInput) {
       publishDate: input.publishDate ? new Date(input.publishDate) : new Date(),
       author: input.author ?? "Rohit Yadav",
       leadPlateUrl: input.leadPlateUrl ?? null,
+      leadPlateDarkUrl: input.leadPlateDarkUrl ?? null,
       leadPlateCaption: input.leadPlateCaption ?? "",
       blocks,
       wordCount: countWords(title, input.dek ?? "", blocks),
@@ -183,6 +186,7 @@ export async function updateArticle(id: string, input: ArticleInput) {
       publishDate: input.publishDate ? new Date(input.publishDate) : existing.publishDate,
       author: input.author ?? existing.author,
       leadPlateUrl: input.leadPlateUrl === undefined ? existing.leadPlateUrl : input.leadPlateUrl,
+      leadPlateDarkUrl: input.leadPlateDarkUrl === undefined ? existing.leadPlateDarkUrl : input.leadPlateDarkUrl,
       leadPlateCaption: input.leadPlateCaption ?? existing.leadPlateCaption,
       blocks: nextBlocks,
       wordCount: countWords(title, input.dek ?? existing.dek, nextBlocks),
