@@ -32,7 +32,8 @@ export const DEFAULT_FMTS = ["i", "b", "code", "link", "fn", "cite", "idea", "sp
 /** Which formatting buttons make sense for each block type. Anything not listed gets the default set. */
 export const ALLOW: Partial<Record<BlockType, string[]>> = {
   code: [],
-  table: [],
+  // Cells render inline markup; the first column is already bold as the row heading.
+  table: ["i", "b", "code", "link", "cite", "idea", "spirit", "matter"],
   steps: ["i", "code", "cite", "p", "concl"],
   list: DEFAULT_FMTS,
   h3: ["i", "code"],
@@ -96,8 +97,9 @@ type Props = {
   onSplit: (id: string, before: string, after: string) => void;
   onBackspaceEmpty: (id: string) => void;
   onUpload: (file: File) => Promise<string | null>;
-  /** Tells the writer which block's text box has focus, so the top formatting bar can act on it. */
-  onActivate: (id: string, el: HTMLTextAreaElement) => void;
+  /** Tells the writer which text field has focus, so the top formatting bar can act on it. Table cells pass
+   *  a `commit` that writes the formatted cell back; block textareas leave it out. */
+  onActivate: (id: string, el: HTMLTextAreaElement | HTMLInputElement, commit?: (next: string) => void) => void;
 };
 
 function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, onMove, onInsertAfter, onSplit, onBackspaceEmpty, onUpload, onActivate }: Props) {
@@ -231,7 +233,11 @@ function BlockEditorInner({ block, index, count, focusReq, onChange, onRemove, o
 
 
           {block.type === "table" ? (
-            <TableEditor value={block.text} onChange={(text) => onChange(block.id, { text })} />
+            <TableEditor
+              value={block.text}
+              onChange={(text) => onChange(block.id, { text })}
+              onActivate={(el, commit) => onActivate(block.id, el, commit)}
+            />
           ) : (
             <textarea
               ref={taRef}

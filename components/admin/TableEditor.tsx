@@ -24,7 +24,14 @@ function toGrid(text: string): Grid {
   return { header: parsed.header, rows: rows.length ? rows : [Array(cols).fill("")] };
 }
 
-export function TableEditor({ value, onChange }: { value: string; onChange: (text: string) => void }) {
+type Props = {
+  value: string;
+  onChange: (text: string) => void;
+  /** Reports the focused cell so the writer's formatting bar can act on it; `commit` writes the cell back. */
+  onActivate?: (el: HTMLInputElement, commit: (next: string) => void) => void;
+};
+
+export function TableEditor({ value, onChange, onActivate }: Props) {
   const grid = toGrid(value);
   const cols = grid.header.length;
   const commit = (next: Grid) => onChange(serialize(next));
@@ -63,6 +70,7 @@ export function TableEditor({ value, onChange }: { value: string; onChange: (tex
                     <input
                       value={h}
                       onChange={(e) => setHeader(c, e.target.value)}
+                      onFocus={(e) => onActivate?.(e.currentTarget, (next) => setHeader(c, next))}
                       placeholder={`Column ${c + 1}`}
                       aria-label={`Column ${c + 1} heading`}
                     />
@@ -89,6 +97,7 @@ export function TableEditor({ value, onChange }: { value: string; onChange: (tex
                     <input
                       value={cell}
                       onChange={(e) => setCell(r, c, e.target.value)}
+                      onFocus={(e) => onActivate?.(e.currentTarget, (next) => setCell(r, c, next))}
                       placeholder={c === 0 ? "Row heading" : "…"}
                       aria-label={`Row ${r + 1}, column ${c + 1}`}
                     />

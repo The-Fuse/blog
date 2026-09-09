@@ -129,8 +129,13 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   const [focusReq, setFocusReq] = useState<FocusRequest | null>(null);
   const nonce = useRef(0);
   // The block whose text box was focused last; the formatting row in the top bar acts on it.
-  const [active, setActive] = useState<{ id: string; el: HTMLTextAreaElement } | null>(null);
-  const onActivate = useCallback((blockId: string, el: HTMLTextAreaElement) => setActive({ id: blockId, el }), []);
+  // The text field the formatting bar acts on. `commit` writes the new value back for fields that are
+  // not the whole block text (a table cell); block textareas leave it out and the block text is patched.
+  const [active, setActive] = useState<{ id: string; el: HTMLTextAreaElement | HTMLInputElement; commit?: (next: string) => void } | null>(null);
+  const onActivate = useCallback(
+    (blockId: string, el: HTMLTextAreaElement | HTMLInputElement, commit?: (next: string) => void) => setActive({ id: blockId, el, commit }),
+    [],
+  );
   const [confirm, confirmDialog] = useConfirm();
   // Autosave is off by default; the choice is remembered in this browser.
   const [autosave, setAutosave] = useState(false);
@@ -493,8 +498,9 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
   function applyFormat(before: string, after: string, fallback: string) {
     if (!active || !activeBlock || !active.el.isConnected) return;
     const ta = active.el;
-    const { next, selStart, selEnd } = toggleFormat(ta.value, ta.selectionStart, ta.selectionEnd, before, after, fallback);
-    patchBlock(active.id, { text: next });
+    const { next, selStart, selEnd } = toggleFormat(ta.value, ta.selectionStart ?? 0, ta.selectionEnd ?? 0, before, after, fallback);
+    if (active.commit) active.commit(next);
+    else patchBlock(active.id, { text: next });
     requestAnimationFrame(() => {
       ta.focus();
       ta.setSelectionRange(selStart, selEnd);
