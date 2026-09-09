@@ -11,6 +11,11 @@ import { absoluteUrl, DEFAULT_SHARE_IMAGE, FEED_ALTERNATES, SITE_NAME } from "@/
 export const revalidate = 3600;
 export const dynamicParams = true;
 
+/** Share image URL that changes on every save, so CDN and messenger caches never show an old cover. */
+function shareImagePath(article: { slug: string; updatedAt: string }) {
+  return `/og/${article.slug}?v=${Date.parse(article.updatedAt).toString(36)}`;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const article = await getPublishedBySlug(slug);
@@ -20,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const description = article.dek || `${article.title} — a long-form essay by ${article.author}.`;
   // The cover is served through /og/<slug> as a small JPEG (messengers refuse SVG and large files).
   const ownCover = Boolean(article.leadPlateUrl);
-  const cover = absoluteUrl(ownCover ? `/og/${article.slug}` : DEFAULT_SHARE_IMAGE.url);
+  const cover = absoluteUrl(ownCover ? shareImagePath(article) : DEFAULT_SHARE_IMAGE.url);
   const images = [
     {
       url: cover,
@@ -66,7 +71,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const next = published[idx + 1] ?? published[idx - 1] ?? null;
 
   const url = absoluteUrl(`/articles/${article.slug}`);
-  const cover = absoluteUrl(article.leadPlateUrl ? `/og/${article.slug}` : DEFAULT_SHARE_IMAGE.url);
+  const cover = absoluteUrl(article.leadPlateUrl ? shareImagePath(article) : DEFAULT_SHARE_IMAGE.url);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",

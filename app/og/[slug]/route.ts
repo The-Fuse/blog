@@ -9,7 +9,8 @@ import { absoluteUrl, DEFAULT_SHARE_IMAGE } from "@/lib/site-url";
  * Share image for one article: the cover re-encoded as a small 1200×630 JPEG.
  * WhatsApp, X and LinkedIn refuse SVG and large files (WhatsApp stops around 300–600 KB), so the
  * original cover (SVG or a multi-megabyte PNG) is rasterised, fitted on the paper colour without
- * cropping, and compressed. Cached for a day; saving the article revalidates it.
+ * cropping, and compressed. Cached for a day; saving the article revalidates it, and the article page
+ * links to it with a per-save version query so stale copies are never reused.
  */
 export const revalidate = 86400;
 
@@ -44,12 +45,10 @@ export async function GET(_request: Request, ctx: { params: Promise<{ slug: stri
       .flatten({ background: PAPER })
       .jpeg({ quality: 82, mozjpeg: true })
       .toBuffer();
+    // No hand-set Cache-Control: the framework caches this for `revalidate` and the article's save
+    // purges it. The URL also carries a version query, so caches never outlive a cover change.
     return new Response(new Uint8Array(jpeg), {
-      headers: {
-        "Content-Type": "image/jpeg",
-        "Content-Length": String(jpeg.length),
-        "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
-      },
+      headers: { "Content-Type": "image/jpeg", "Content-Length": String(jpeg.length) },
     });
   } catch {
     return fallback();
