@@ -3,9 +3,12 @@ import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { listPublished } from "@/lib/articles";
 import { getSite } from "@/lib/site";
+import { FEED_ALTERNATES } from "@/lib/site-url";
 
 // Rendered once and cached; publishing, editing or deleting an article revalidates these paths.
 export const revalidate = 3600;
+
+export const metadata = { alternates: { canonical: "/", types: FEED_ALTERNATES }, openGraph: { url: "/" } };
 
 export default async function Home() {
   const [articles, site] = await Promise.all([listPublished(), getSite()]);

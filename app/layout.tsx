@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Libre_Baskerville, Newsreader } from "next/font/google";
+import { FEED_ALTERNATES, SITE_DESCRIPTION, SITE_NAME, siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -26,11 +27,26 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: siteUrl(),
   title: {
-    default: "Rohit Yadav",
-    template: "%s · Rohit Yadav",
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
   },
-  description: "Long-form study editions of philosophers and of technical ideas.",
+  description: SITE_DESCRIPTION,
+  alternates: { types: FEED_ALTERNATES },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
   appleWebApp: {
     capable: true,
     title: "Rohit Yadav",

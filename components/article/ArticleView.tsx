@@ -87,7 +87,7 @@ export function ArticleView({ article, next = null, chrome = true }: Props) {
               <figure style={{ margin: 0 }}>
                 <div className="plate-ph">
                   {article.leadPlateUrl ? (
-                    <ThemedImage src={article.leadPlateUrl} darkSrc={article.leadPlateDarkUrl} alt="" fetchPriority="high" decoding="async" />
+                    <ThemedImage src={article.leadPlateUrl} darkSrc={article.leadPlateDarkUrl} alt={article.leadPlateCaption || article.title} fetchPriority="high" decoding="async" />
                   ) : (
                     <div className="plate-hatch mono-sm" style={{ fontFamily: "var(--font-article-mono)" }}>
                       cover image (optional)

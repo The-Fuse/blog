@@ -11,5 +11,6 @@ export async function POST(request: Request) {
   const article = await createArticle(input);
   revalidatePath("/");
   revalidatePath("/feed.xml");
+  revalidatePath("/sitemap.xml");
   return Response.json(article, { status: 201 });
 }
