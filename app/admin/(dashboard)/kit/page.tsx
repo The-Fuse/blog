@@ -118,7 +118,7 @@ export default async function KitPage() {
     <>
       <div className="mono" style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 20, flexWrap: "wrap", paddingBottom: 10, borderBottom: "1px solid var(--rule)", color: "var(--ink-3)" }}>
         <span>Article kit · v1</span>
-        <span>Study-edition format</span>
+        <span>Article format</span>
         <span>{labels.length} blocks</span>
       </div>
 

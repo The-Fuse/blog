@@ -1,5 +1,5 @@
 export const SITE_NAME = "Rohit Yadav";
-export const SITE_DESCRIPTION = "Long-form study editions of philosophers and of technical ideas.";
+export const SITE_DESCRIPTION = "Long-form essays on philosophers and on technical ideas.";
 
 /** Feed discovery link. Metadata merges per top-level key, so any page that sets `alternates` must include this. */
 export const FEED_ALTERNATES = { "application/rss+xml": "/feed.xml" };
@@ -22,9 +22,4 @@ export function siteUrl(): URL {
 /** Absolute URL for a path or an already-absolute URL (returned unchanged). */
 export function absoluteUrl(pathOrUrl: string) {
   return new URL(pathOrUrl, siteUrl()).toString();
-}
-
-/** Share previews (WhatsApp, X, LinkedIn) do not render SVG. */
-export function isShareableImage(url: string | null | undefined): url is string {
-  return Boolean(url) && !/\.svg(\?|#|$)/i.test(url as string);
 }

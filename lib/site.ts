@@ -11,7 +11,7 @@ export type SiteInput = Partial<SiteDTO>;
 
 const DEFAULTS: SiteDTO = {
   aboutHeading: "About",
-  aboutText: "Long-form study editions of philosophers and of technical ideas — arguments set out as arguments, with every diagram drawn in one visual grammar.",
+  aboutText: "Long-form essays on philosophers and on technical ideas — arguments set out as arguments, with every diagram drawn in one visual grammar.",
   aboutNote: "New edition roughly every month.",
   contactEmail: "",
 };

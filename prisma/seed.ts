@@ -66,7 +66,7 @@ async function main() {
         slug: "george-berkeley-esse-est-percipi",
         title: "George Berkeley: esse est percipi",
         kicker: "The whole system in four words",
-        dek: "An illustrated study edition. Eighteen chapters, twenty-two plates, and the whole system in four words.",
+        dek: "An illustrated edition. Eighteen chapters, twenty-two plates, and the whole system in four words.",
         topic: "Philosophy",
         status: "published",
         featured: true,

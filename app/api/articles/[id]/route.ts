@@ -25,6 +25,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
   }
   revalidatePath("/");
   revalidatePath(`/articles/${article.slug}`);
+  revalidatePath(`/og/${article.slug}`);
   if (before && before.slug !== article.slug) revalidatePath(`/articles/${before.slug}`);
   revalidatePath("/feed.xml");
   revalidatePath("/sitemap.xml");
@@ -37,6 +38,7 @@ export async function DELETE(_request: Request, ctx: Ctx) {
   if (!article) return Response.json({ error: "Not found" }, { status: 404 });
   revalidatePath("/");
   revalidatePath(`/articles/${article.slug}`);
+  revalidatePath(`/og/${article.slug}`);
   revalidatePath("/feed.xml");
   revalidatePath("/sitemap.xml");
   return Response.json({ ok: true });

@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   <channel>
     <title>Rohit Yadav</title>
     <link>${origin}</link>
-    <description>Long-form study editions of philosophers and of technical ideas.</description>
+    <description>Long-form essays on philosophers and on technical ideas.</description>
     ${items}
   </channel>
 </rss>`;

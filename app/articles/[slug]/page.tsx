@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArticleView } from "@/components/article/ArticleView";
 import { getPublishedBySlug, listPublished } from "@/lib/articles";
 import { articleStats } from "@/lib/format";
-import { absoluteUrl, DEFAULT_SHARE_IMAGE, FEED_ALTERNATES, isShareableImage, SITE_NAME } from "@/lib/site-url";
+import { absoluteUrl, DEFAULT_SHARE_IMAGE, FEED_ALTERNATES, SITE_NAME } from "@/lib/site-url";
 
 // Articles render on first visit and are then cached; saving, publishing or deleting an article
 // revalidates the affected paths. Nothing is prerendered at build so the build needs no database
@@ -17,13 +17,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!article) return { title: "Not found", robots: { index: false } };
 
   const path = `/articles/${article.slug}`;
-  const description = article.dek || `${article.title} — a study edition by ${article.author}.`;
-  // WhatsApp, X and LinkedIn need a raster image; an SVG cover falls back to the site card.
-  const ownCover = isShareableImage(article.leadPlateUrl);
-  const cover = ownCover ? absoluteUrl(article.leadPlateUrl as string) : absoluteUrl(DEFAULT_SHARE_IMAGE.url);
-  const images = ownCover
-    ? [{ url: cover, alt: article.leadPlateCaption || article.title }]
-    : [{ ...DEFAULT_SHARE_IMAGE, url: cover, alt: article.title }];
+  const description = article.dek || `${article.title} — a long-form essay by ${article.author}.`;
+  // The cover is served through /og/<slug> as a small JPEG (messengers refuse SVG and large files).
+  const ownCover = Boolean(article.leadPlateUrl);
+  const cover = absoluteUrl(ownCover ? `/og/${article.slug}` : DEFAULT_SHARE_IMAGE.url);
+  const images = [
+    {
+      url: cover,
+      width: DEFAULT_SHARE_IMAGE.width,
+      height: DEFAULT_SHARE_IMAGE.height,
+      type: ownCover ? "image/jpeg" : "image/png",
+      alt: ownCover ? article.leadPlateCaption || article.title : article.title,
+    },
+  ];
 
   return {
     title: article.title,
@@ -60,7 +66,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const next = published[idx + 1] ?? published[idx - 1] ?? null;
 
   const url = absoluteUrl(`/articles/${article.slug}`);
-  const cover = isShareableImage(article.leadPlateUrl) ? absoluteUrl(article.leadPlateUrl) : absoluteUrl(DEFAULT_SHARE_IMAGE.url);
+  const cover = absoluteUrl(article.leadPlateUrl ? `/og/${article.slug}` : DEFAULT_SHARE_IMAGE.url);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",

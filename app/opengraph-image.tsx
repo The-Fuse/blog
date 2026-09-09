@@ -24,7 +24,7 @@ export default function Image() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 26, letterSpacing: 6, color: "#8a6a3a" }}>
           <div style={{ width: 14, height: 14, borderRadius: 7, background: "#2f6f5e" }} />
-          STUDY EDITIONS
+          LONG-FORM ESSAYS
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ fontSize: 132, lineHeight: 1, letterSpacing: -4 }}>{SITE_NAME}</div>

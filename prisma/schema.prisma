@@ -50,7 +50,7 @@ model Media {
 model Site {
   id           Int      @id @default(1)
   aboutHeading String   @default("About")
-  aboutText    String   @default("Long-form study editions of philosophers and of technical ideas — arguments set out as arguments, with every diagram drawn in one visual grammar.")
+  aboutText    String   @default("Long-form essays on philosophers and on technical ideas — arguments set out as arguments, with every diagram drawn in one visual grammar.")
   aboutNote    String   @default("New edition roughly every month.")
   contactEmail String   @default("")
   updatedAt    DateTime @updatedAt

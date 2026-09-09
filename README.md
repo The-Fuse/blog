@@ -1,6 +1,6 @@
 # Rohit Yadav
 
-Public site and admin writer for long-form study editions.
+Public site and admin writer for long-form essays.
 
 ## Run locally
 
@@ -14,4 +14,4 @@ npm run dev
 
 - Site: http://localhost:3000
 - Admin: http://localhost:3000/admin
-- Password: `ADMIN_PASSWORD` from `.env` (default `study-editions`)
+- Password: `ADMIN_PASSWORD` from `.env` (set it in `.env`)

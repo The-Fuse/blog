@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Rohit Yadav",
     short_name: "Rohit Yadav",
-    description: "Long-form study editions of philosophers and of technical ideas.",
+    description: "Long-form essays on philosophers and on technical ideas.",
     start_url: "/",
     display: "standalone",
     background_color: "#f5efe3",
