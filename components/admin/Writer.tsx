@@ -22,11 +22,14 @@ type Draft = {
   topic: string;
   publishDate: string;
   featured: boolean;
+  author: string;
   leadPlateUrl: string | null;
   leadPlateDarkUrl: string | null;
   leadPlateCaption: string;
   blocks: Block[];
 };
+
+const DEFAULT_AUTHOR = "Rohit Yadav";
 
 function fromArticle(a?: ArticleDTO | null): Draft {
   return {
@@ -36,6 +39,7 @@ function fromArticle(a?: ArticleDTO | null): Draft {
     topic: a?.topic ?? "",
     publishDate: a ? toDateInput(a.publishDate) : toDateInput(new Date().toISOString()),
     featured: a?.featured ?? false,
+    author: a?.author ?? DEFAULT_AUTHOR,
     leadPlateUrl: a?.leadPlateUrl ?? null,
     leadPlateDarkUrl: a?.leadPlateDarkUrl ?? null,
     leadPlateCaption: a?.leadPlateCaption ?? "",
@@ -61,7 +65,7 @@ const CHEATSHEET: { type: string; result: string }[] = [
 
 const NEW_TOPIC = "__new__";
 
-function draftToArticle(draft: Draft, id: string | null, author: string, slug: string): ArticleDTO {
+function draftToArticle(draft: Draft, id: string | null, slug: string): ArticleDTO {
   const date = draft.publishDate ? new Date(draft.publishDate) : new Date();
   return {
     id: id ?? "preview",
@@ -74,7 +78,7 @@ function draftToArticle(draft: Draft, id: string | null, author: string, slug: s
     featured: draft.featured,
     publishDate: Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString(),
     updatedAt: new Date().toISOString(),
-    author,
+    author: draft.author.trim() || DEFAULT_AUTHOR,
     leadPlateUrl: draft.leadPlateUrl,
     leadPlateDarkUrl: draft.leadPlateDarkUrl,
     leadPlateCaption: draft.leadPlateCaption,
@@ -474,7 +478,7 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [topics, savedTopic]);
   const topicSelectValue = addingTopic ? NEW_TOPIC : topicOptions.includes(draft.topic) ? draft.topic : draft.topic ? NEW_TOPIC : "";
-  const previewArticle = mode === "preview" ? draftToArticle(draft, id, article?.author ?? "Rohit Yadav", slug) : null;
+  const previewArticle = mode === "preview" ? draftToArticle(draft, id, slug) : null;
 
   const statusText = notice
     ? notice.text
@@ -831,6 +835,11 @@ export function Writer({ article, topics }: { article?: ArticleDTO | null; topic
               <label className="wr-field">
                 <span className="field-label">Publish date</span>
                 <input type="date" value={draft.publishDate} onChange={(e) => patch({ publishDate: e.target.value })} />
+              </label>
+              <label className="wr-field">
+                <span className="field-label">Author</span>
+                <input value={draft.author} onChange={(e) => patch({ author: e.target.value })} placeholder={DEFAULT_AUTHOR} />
+                <span className="field-help">Shown as “Written by …” under the title. Empty means {DEFAULT_AUTHOR}.</span>
               </label>
               <label className="wr-field">
                 <span className="field-label">Web address</span>
